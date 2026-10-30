@@ -21,8 +21,12 @@ public enum EntrySearch {
 
     /// Whether every term of `query` matches; an empty query matches everything.
     public static func matches(_ query: String, _ entry: Entry) -> Bool {
-        let terms = terms(of: query)
-        return terms.isEmpty || score(terms, entry) != nil
+        matches(terms: terms(of: query), entry)
+    }
+
+    /// `matches(_:_:)` with the query split once, for filtering many entries.
+    static func matches(terms: [String], _ entry: Entry) -> Bool {
+        terms.isEmpty || score(terms, entry) != nil
     }
 
     /// Case, diacritic, and width insensitive, so "viet" finds "Việt".
@@ -31,21 +35,22 @@ public enum EntrySearch {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private static func terms(of query: String) -> [String] {
+    static func terms(of query: String) -> [String] {
         normalize(query).split(separator: " ").map(String.init)
     }
 
     private static func score(_ terms: [String], _ entry: Entry) -> Int? {
+        let name = normalize(entry.name)
         var total = 0
         for term in terms {
-            guard let score = score(term, entry) else { return nil }
+            guard let score = score(term, entry, name: name) else { return nil }
             total += score
         }
         return total
     }
 
-    private static func score(_ term: String, _ entry: Entry) -> Int? {
-        let name = normalize(entry.name)
+    /// `name` is the entry's name, normalized once for all terms.
+    private static func score(_ term: String, _ entry: Entry, name: String) -> Int? {
         if name.hasPrefix(term) { return 100 }
         if name.split(separator: " ").contains(where: { $0.hasPrefix(term) }) { return 80 }
         if name.contains(term) { return 60 }

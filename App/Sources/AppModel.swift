@@ -26,6 +26,13 @@ final class AppModel {
     @ObservationIgnored private(set) var dependencies: AppDependencies?
     @ObservationIgnored private var observeTask: Task<Void, Never>?
     @ObservationIgnored private var syncStatusTask: Task<Void, Never>?
+    @ObservationIgnored private var updateTask: Task<Void, Never>?
+    @ObservationIgnored private let releaseFeed: any ReleaseFeedPort = GitHubReleaseFeed()
+    /// Software Update: the window's state and the 12-hour background check.
+    @ObservationIgnored private(set) lazy var updates = UpdateViewModel(
+        currentVersion: AboutInfo.load().version,
+        actions: self
+    )
 
     var board: BoardViewModel? {
         if case .ready(let board) = phase { return board }
@@ -58,7 +65,21 @@ final class AppModel {
                 board?.update(snapshot)
             }
         }
+        startUpdateChecks()
         await startSyncIfSignedIn()
+    }
+
+    /// Checks for a newer version shortly after launch if 12 hours have passed since the last
+    /// check, then every 12 hours while the app runs.
+    private func startUpdateChecks() {
+        updateTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let wait = self?.updates.secondsUntilNextCheck() else { return }
+                try? await Task.sleep(for: .seconds(wait))
+                guard !Task.isCancelled else { return }
+                await self?.updates.checkInBackground()
+            }
+        }
     }
 
     var requiredDependencies: AppDependencies {
@@ -186,7 +207,7 @@ extension AppModel: EntryEditorActions {
 
 extension AppModel: QuickSearchActions {
     func searchableEntries() async -> [Entry] {
-        board?.snapshot.liveEntries ?? []
+        board?.liveEntries ?? []
     }
 
     func boardName(of entry: Entry) -> String {
@@ -248,5 +269,15 @@ extension AppModel: SettingsActions {
         let changed = try await dependencies.store.merge(try dependencies.codec.decode(data))
         if changed { await self.changed() }
         return changed
+    }
+}
+
+extension AppModel: UpdateActions {
+    func fetchReleases() async throws -> [Release] {
+        try await releaseFeed.releases()
+    }
+
+    func openReleasePage() {
+        NSWorkspace.shared.open(GitHubReleaseFeed.releasePage)
     }
 }

@@ -2,7 +2,7 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// One task in the grid: kind, date, name, the first line of its story, and the first metric.
+/// One task in the grid: kind, date, name, the start of its story, and the first metric.
 struct EntryCard: View {
     let entry: Entry
     let boardName: String?
@@ -17,7 +17,7 @@ struct EntryCard: View {
                     .appFont(12)
                     .foregroundStyle(Palette.mutedInk)
             }
-            Text(entry.name.isEmpty ? "Untitled" : entry.name)
+            Text(entry.displayName)
                 .appFont(15, weight: .semibold)
                 .foregroundStyle(Palette.ink)
                 .lineLimit(2)
@@ -108,7 +108,7 @@ struct EntryDetailView: View {
                     .padding(.bottom, 20)
                 Divider()
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(entry.sections, id: \.title) { section in
+                    ForEach(entry.sections, id: \.part) { section in
                         sectionView(section)
                         Divider()
                     }
@@ -143,7 +143,7 @@ struct EntryDetailView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
             Badge(entry.type.title, tint: entry.type.tint)
-            Text(entry.name.isEmpty ? "Untitled" : entry.name)
+            Text(entry.displayName)
                 .appFont(24, weight: .bold)
                 .foregroundStyle(Palette.ink)
                 .textSelection(.enabled)

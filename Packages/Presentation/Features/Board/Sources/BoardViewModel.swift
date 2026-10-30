@@ -93,12 +93,35 @@ public final class BoardViewModel {
     /// Set by the app while signed in to Google Drive; nil hides the toolbar indicator.
     public var syncStatus: SyncStatus?
     public var selection: BoardSelection = .all {
-        didSet { selectedEntryId = nil }
+        didSet {
+            selectedEntryId = nil
+            refreshVisible()
+        }
     }
     /// Empty shows every kind.
-    public var types: Set<EntryType> = []
-    public var text = ""
-    public var sort: EntrySort = .newest
+    public var types: Set<EntryType> = [] {
+        didSet { refreshVisible() }
+    }
+    public var text = "" {
+        didSet { refreshVisible() }
+    }
+    public var sort: EntrySort = .newest {
+        didSet { refreshVisible() }
+    }
+
+    // Derived from `snapshot` once per update, not on every read: views read these many times
+    // per redraw, and with thousands of tasks recomputing them made each click lag.
+    /// Live boards, newest first.
+    public private(set) var boards: [Board] = []
+    /// Live tasks, in file order.
+    public private(set) var liveEntries: [Entry] = []
+    /// What the grid or table shows: the board, kinds, text filter, and sort applied.
+    public private(set) var visibleEntries: [Entry] = []
+    /// Kinds to offer as filter chips: the known ones, then any others found in the data.
+    public private(set) var availableTypes = EntryType.known
+    private var boardNames: [UUID: String] = [:]
+    private var counts: [UUID: (tasks: Int, measured: Int)] = [:]
+
     public var layout: BoardLayout = .grid
     public var selectedEntryId: UUID?
     public var boardDraft: BoardDraft?
@@ -126,50 +149,54 @@ public final class BoardViewModel {
 
     // MARK: Data
 
-    /// Called by the app with every new snapshot, local or synced in.
+    /// Called by the app with every new snapshot, local or synced in. The same snapshot can
+    /// arrive twice (the save path and the change stream); the second is ignored.
     public func update(_ snapshot: LedgerSnapshot) {
+        guard snapshot != self.snapshot else { return }
         self.snapshot = snapshot
-        if case .board(let id) = selection, !snapshot.liveBoards.contains(where: { $0.id == id }) {
+        boards = snapshot.liveBoards
+        liveEntries = snapshot.liveEntries
+        boardNames = Dictionary(boards.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
+        counts = liveEntries.reduce(into: [:]) { counts, entry in
+            counts[entry.boardId, default: (0, 0)].tasks += 1
+            if !entry.metrics.isEmpty { counts[entry.boardId, default: (0, 0)].measured += 1 }
+        }
+        let extra = Set(liveEntries.map(\.type)).subtracting(EntryType.known)
+        availableTypes = EntryType.known + extra.sorted { $0.rawValue < $1.rawValue }
+        if case .board(let id) = selection, boardNames[id] == nil {
             selection = .all
         }
-        if let id = selectedEntryId, !snapshot.liveEntries.contains(where: { $0.id == id }) {
+        if let id = selectedEntryId, !liveEntries.contains(where: { $0.id == id }) {
             selectedEntryId = nil
         }
+        refreshVisible()
     }
 
-    public var boards: [Board] { snapshot.liveBoards }
+    private func refreshVisible() {
+        visibleEntries = query.apply(to: liveEntries)
+    }
 
     public var selectedBoard: Board? {
         guard case .board(let id) = selection else { return nil }
         return boards.first { $0.id == id }
     }
 
-    public var query: EntryQuery {
+    private var query: EntryQuery {
         EntryQuery(boardId: selectedBoard?.id, types: types, text: text, sort: sort)
-    }
-
-    public var visibleEntries: [Entry] {
-        query.apply(to: snapshot.liveEntries)
     }
 
     public var selectedEntry: Entry? {
         guard let id = selectedEntryId else { return nil }
-        return snapshot.liveEntries.first { $0.id == id }
+        return liveEntries.first { $0.id == id }
     }
 
     public func entryCount(of board: Board?) -> Int {
-        guard let board else { return snapshot.liveEntries.count }
-        return snapshot.liveEntries.count { $0.boardId == board.id }
+        guard let board else { return liveEntries.count }
+        return counts[board.id]?.tasks ?? 0
     }
 
     public func boardName(of entry: Entry) -> String {
-        boards.first { $0.id == entry.boardId }?.name ?? ""
-    }
-
-    /// Kinds to offer as filter chips: the known ones, then any others found in the data.
-    public var availableTypes: [EntryType] {
-        let extra = Set(snapshot.liveEntries.map(\.type)).subtracting(EntryType.known)
-        return EntryType.known + extra.sorted { $0.rawValue < $1.rawValue }
+        boardNames[entry.boardId] ?? ""
     }
 
     public var title: String {
@@ -178,16 +205,16 @@ public final class BoardViewModel {
 
     /// "Jan 2026 - now · 4 tasks · 2 with metrics", under the board's name.
     public var summary: String {
-        let entries =
-            selectedBoard.map { board in snapshot.liveEntries.filter { $0.boardId == board.id } }
-            ?? snapshot.liveEntries
-        var parts = [entries.count == 1 ? "1 task" : "\(entries.count) tasks"]
+        var parts: [String]
+        let measured: Int
         if let board = selectedBoard {
-            parts.insert(board.period, at: 0)
+            let count = counts[board.id] ?? (0, 0)
+            parts = [board.period(\.short), count.tasks.counted("task")]
+            measured = count.measured
         } else {
-            parts.append(boards.count == 1 ? "1 board" : "\(boards.count) boards")
+            parts = [liveEntries.count.counted("task"), boards.count.counted("board")]
+            measured = counts.values.reduce(0) { $0 + $1.measured }
         }
-        let measured = entries.count { !$0.metrics.isEmpty }
         if measured > 0 { parts.append("\(measured) with metrics") }
         return parts.joined(separator: " · ")
     }
@@ -259,7 +286,7 @@ public final class BoardViewModel {
     /// Selects an entry found elsewhere (quick search), switching boards when the filters
     /// would hide it.
     public func reveal(_ entryId: UUID) {
-        guard let entry = snapshot.liveEntries.first(where: { $0.id == entryId }) else { return }
+        guard let entry = liveEntries.first(where: { $0.id == entryId }) else { return }
         if !query.apply(to: [entry]).isEmpty {
             selectedEntryId = entryId
             return
@@ -280,23 +307,23 @@ public final class BoardViewModel {
 
     // MARK: Export
 
-    public var canExport: Bool { !snapshot.liveEntries.isEmpty }
+    public var canExport: Bool { !liveEntries.isEmpty }
 
     /// The selected board, or every board on All tasks.
     public func exportCurrent() {
         let today = DayDate(actions.now().date)
         if let board = selectedBoard {
-            let text = MarkdownExport.board(board, entries: snapshot.liveEntries, exportedOn: today)
+            let text = MarkdownExport.board(board, entries: liveEntries, exportedOn: today)
             exportFile = ExportFile(name: MarkdownExport.fileName(board.name), text: text)
         } else {
-            let text = MarkdownExport.all(boards: boards, entries: snapshot.liveEntries, exportedOn: today)
+            let text = MarkdownExport.all(boards: boards, entries: liveEntries, exportedOn: today)
             exportFile = ExportFile(name: "Tenure", text: text)
         }
     }
 
     /// Years with tasks, newest first.
     public var exportYears: [Int] {
-        MarkdownExport.years(of: snapshot.liveEntries)
+        MarkdownExport.years(of: liveEntries)
     }
 
     public func beginYearExport() {
@@ -309,13 +336,11 @@ public final class BoardViewModel {
         let groups = MarkdownExport.yearGroups(
             draft.year,
             boards: boards,
-            entries: snapshot.liveEntries,
+            entries: liveEntries,
             boardId: draft.boardId
         )
         let tasks = groups.reduce(0) { $0 + $1.entries.count }
-        let taskText = tasks == 1 ? "1 task" : "\(tasks) tasks"
-        let boardText = groups.count == 1 ? "1 board" : "\(groups.count) boards"
-        return "\(taskText) from \(boardText), dated in \(draft.year)."
+        return "\(tasks.counted("task")) from \(groups.count.counted("board")), dated in \(draft.year)."
     }
 
     /// `draft` is the sheet's edited copy of `yearExport`.
@@ -323,7 +348,7 @@ public final class BoardViewModel {
         let text = MarkdownExport.year(
             draft.year,
             boards: boards,
-            entries: snapshot.liveEntries,
+            entries: liveEntries,
             boardId: draft.boardId,
             options: draft.options,
             exportedOn: DayDate(actions.now().date)

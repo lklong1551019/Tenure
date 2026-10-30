@@ -33,7 +33,7 @@ public struct Board: LedgerItem, Hashable {
         end == nil
     }
 
-    /// Newest stretch first; the current one before any that ended.
+    /// Newest start first; ties by name.
     public static func timelineOrder(_ lhs: Board, _ rhs: Board) -> Bool {
         if lhs.start != rhs.start { return lhs.start > rhs.start }
         return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending

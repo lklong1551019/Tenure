@@ -11,9 +11,14 @@ change them, and how two copies merge and sync.
 
 - Entities: `Board`, `Entry`, `EntryType`, `Metric`, `YearMonth`, `DayDate`, `LedgerSnapshot`;
   tolerant decoding (a bad field falls back, never fails the file)
+- `StoryPart` and the shared wording rules in `Entry+Story.swift`: `Entry.story`,
+  `displayName`, `period(_:)`, `Board.period(_:)`, `Int.counted(_:)`, `Metric.change`
 - `LedgerStore`: stamps, persists, then applies each change; publishes snapshots
-- `EntryQuery` (board, kinds, text, sort) and `EntrySearch` (ranked search for Cmd+K)
+- `EntryQuery` (board, kinds, text, sort; splits the text once and compares names only when
+  needed) and `EntrySearch` (ranked search for Cmd+K)
 - `MarkdownExport`: a board, a year, every board, or one task as Markdown; metric change (`-44%`)
+- `Release`, `UpdateCheck` (decode the published changelog, compare `YY.MM.NN` versions),
+  `ReleaseFeedPort`
 - `MergePolicy`: per-item last-writer-wins, tombstones, 90-day purge
 - `SyncLedger`, `SyncScheduler`, `SnapshotFingerprint`, `RemoteLedgerCheck`
 - Ports: `LedgerRepository`, `LedgerCodecPort`, `RemoteStorePort`, `DriveAccountPort`,
@@ -30,6 +35,7 @@ Nothing.
 
 ## Tests
 
-`DomainTests` (32 tests): model round trips and tolerance, merge rules, store stamping, Markdown export,
+`DomainTests` (35 tests): model round trips and tolerance, merge rules, store stamping, Markdown
+export, update check (version order, newer releases, tolerant changelog),
 cascade delete and failed saves, query sort and filters, search ranking, two-Mac sync with an
 in-memory remote (convergence, deletes, interleaved uploads, refused remotes, error mapping).

@@ -17,7 +17,6 @@ public enum Palette {
     public static let secondaryInk = dynamic(light: 0x374151, dark: 0xD1D5DB)
     public static let mutedInk = dynamic(light: 0x6B7280, dark: 0x9CA3AF)
     public static let accent = dynamic(light: 0x0F766E, dark: 0x2DD4BF)
-    public static let accentSoft = dynamic(light: 0xE3F4F1, dark: 0x123A35)
     public static let accentInk = dynamic(light: 0x0B5D56, dark: 0x7EE8D6)
     /// Text and icons on `accent`.
     public static let onAccent = dynamic(light: 0xFFFFFF, dark: 0x042F2A)
@@ -55,7 +54,6 @@ public enum Metrics {
     public static let cornerRadius: CGFloat = 12
     public static let controlRadius: CGFloat = 8
     public static let controlHeight: CGFloat = 36
-    public static let largeControlHeight: CGFloat = 44
 }
 
 extension NSColor {

@@ -77,8 +77,6 @@ public actor SyncScheduler {
         await run()
     }
 
-    public var currentStatus: SyncStatus { status }
-
     /// Yields the current status first, then every change.
     public func statuses() -> AsyncStream<SyncStatus> {
         let (stream, continuation) = AsyncStream<SyncStatus>.makeStream()

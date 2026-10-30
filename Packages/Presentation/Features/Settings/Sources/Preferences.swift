@@ -75,6 +75,11 @@ public enum TextSize: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// Whether the menu bar icon shows, stored by the app as a Bool. On unless turned off.
+public enum MenuBarIcon {
+    public static let storageKey = "showsMenuBarIcon"
+}
+
 /// What Settings > About shows.
 public struct AboutInfo: Sendable, Equatable {
     public let version: String

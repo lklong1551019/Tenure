@@ -1,8 +1,19 @@
 import SwiftUI
 
 /// Color family of a badge or tile. Features map their own kinds onto these.
-public enum Tint: Sendable, Hashable, CaseIterable {
-    case neutral, blue, violet, teal, amber, red, green
+public enum Tint: Sendable, Hashable {
+    case neutral, blue, violet, teal, amber, red
+
+    /// The color of a task kind, by its stored name, so every feature shows a kind alike.
+    public static func kind(_ rawValue: String) -> Tint {
+        switch rawValue {
+        case "product": .violet
+        case "dev": .blue
+        case "bugFix": .red
+        case "findings": .amber
+        default: .neutral
+        }
+    }
 
     public var foreground: Color {
         switch self {
@@ -12,7 +23,6 @@ public enum Tint: Sendable, Hashable, CaseIterable {
         case .teal: Palette.teal
         case .amber: Palette.warning
         case .red: Palette.danger
-        case .green: Palette.success
         }
     }
 
@@ -24,7 +34,6 @@ public enum Tint: Sendable, Hashable, CaseIterable {
         case .teal: Palette.tealSoft
         case .amber: Palette.warningSoft
         case .red: Palette.dangerSoft
-        case .green: Palette.successSoft
         }
     }
 }

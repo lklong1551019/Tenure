@@ -77,10 +77,6 @@ public struct DayDate: Sendable, Hashable, Comparable, Codable, CustomStringConv
         self.init(year: year, month: month, day: day)
     }
 
-    public var yearMonth: YearMonth {
-        YearMonth(year: year, month: month)
-    }
-
     /// Noon on that day: safe from day shifts in any time zone.
     public func date(calendar: Calendar = .current) -> Date {
         calendar.date(from: DateComponents(year: year, month: month, day: day, hour: 12)) ?? .distantPast

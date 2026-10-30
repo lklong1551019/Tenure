@@ -11,8 +11,14 @@ public struct BoardView: View {
     /// Layout and sort survive relaunches; filters and selection start fresh.
     @AppStorage("boardLayout") private var storedLayout: BoardLayout = .grid
     @AppStorage("entrySort") private var storedSort: EntrySort = .newest
+    /// Share of the space right of the sidebar that the task list takes; the story gets the rest.
+    @AppStorage("listRatio") private var listRatio = Self.defaultListRatio
+    /// `listRatio` when the current drag of the split handle began.
+    @State private var dragStartRatio: Double?
 
+    static let defaultListRatio = 0.4
     static let minimumListWidth: CGFloat = 320
+    static let minimumDetailWidth: CGFloat = 360
 
     public init(model: BoardViewModel) {
         self.model = model
@@ -23,12 +29,12 @@ public struct BoardView: View {
             sidebar
                 .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 300)
         } detail: {
-            // Tasks and the selected task's story share the space 40 to 60.
+            // Tasks and the selected task's story, 40 to 60 until the handle is dragged.
             GeometryReader { proxy in
                 HStack(spacing: 0) {
                     content
-                        .frame(width: max(Self.minimumListWidth, proxy.size.width * 0.4))
-                    Divider()
+                        .frame(width: listWidth(in: proxy.size.width))
+                    splitHandle(totalWidth: proxy.size.width)
                     detail
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -64,7 +70,7 @@ public struct BoardView: View {
             )
         }
         .fileExporter(
-            isPresented: Binding(get: { model.exportFile != nil }, set: { if !$0 { model.exportFile = nil } }),
+            isPresented: Binding(present: $model.exportFile),
             document: model.exportFile.map { MarkdownDocument(text: $0.text) },
             contentType: MarkdownDocument.markdown,
             defaultFilename: model.exportFile?.name
@@ -74,7 +80,7 @@ public struct BoardView: View {
         }
         .confirmationDialog(
             pendingDelete?.title ?? "",
-            isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
+            isPresented: Binding(present: $pendingDelete),
             presenting: pendingDelete
         ) { item in
             Button("Delete", role: .destructive) {
@@ -88,6 +94,40 @@ public struct BoardView: View {
         } message: { item in
             Text(item.message)
         }
+    }
+
+    // MARK: Split
+
+    private func listWidth(in total: CGFloat) -> CGFloat {
+        let upper = max(Self.minimumListWidth, total - Self.minimumDetailWidth)
+        return min(max(total * listRatio, Self.minimumListWidth), upper)
+    }
+
+    /// A hairline with a wider grab area. Drag to resize; double-click to go back to 40/60.
+    private func splitHandle(totalWidth: CGFloat) -> some View {
+        Rectangle()
+            .fill(Palette.border)
+            .frame(width: 1)
+            .padding(.horizontal, 3)
+            .contentShape(Rectangle())
+            .pointerStyle(.frameResize(position: .trailing))
+            .gesture(
+                DragGesture(minimumDistance: 1)
+                    .onChanged { drag in
+                        guard totalWidth > Self.minimumListWidth + Self.minimumDetailWidth else { return }
+                        let start = dragStartRatio ?? listRatio
+                        dragStartRatio = start
+                        // Kept within what both columns' minimums allow, so dragging back
+                        // responds at once instead of first undoing an overshoot.
+                        let lowest = Self.minimumListWidth / totalWidth
+                        let highest = (totalWidth - Self.minimumDetailWidth) / totalWidth
+                        listRatio = min(max(start + drag.translation.width / totalWidth, lowest), highest)
+                    }
+                    .onEnded { _ in dragStartRatio = nil }
+            )
+            .onTapGesture(count: 2) { listRatio = Self.defaultListRatio }
+            .accessibilityLabel("Resize task list")
+            .help("Drag to resize; double-click for 40/60")
     }
 
     // MARK: Sidebar
@@ -170,10 +210,15 @@ public struct BoardView: View {
                 filterBar
             }
             if let message = model.errorMessage {
-                ErrorLine(message)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                HStack {
+                    ErrorLine(message)
+                    Spacer()
+                    Button("Dismiss", systemImage: "xmark") { model.dismissError() }
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(.borderless)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
             }
             if model.boards.isEmpty {
                 emptyState(
@@ -182,7 +227,7 @@ public struct BoardView: View {
                     action: ("New board", model.newBoard)
                 )
             } else if model.visibleEntries.isEmpty {
-                if model.query.text.isEmpty && model.types.isEmpty {
+                if model.text.isEmpty && model.types.isEmpty {
                     emptyState(
                         "Write down what you shipped",
                         "Add a task with the problem, the fix, and the numbers that prove it.",
@@ -329,7 +374,7 @@ public struct BoardView: View {
             }
             .width(min: 70, ideal: 80, max: 100)
             TableColumn("Name", value: \Entry.name, comparator: .localizedStandard) { entry in
-                Text(entry.name.isEmpty ? "Untitled" : entry.name)
+                Text(entry.displayName)
             }
             TableColumn("Board") { entry in
                 Text(model.boardName(of: entry)).foregroundStyle(Palette.secondaryInk)

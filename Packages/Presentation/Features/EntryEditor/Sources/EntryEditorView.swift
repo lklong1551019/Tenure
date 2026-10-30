@@ -86,9 +86,12 @@ public struct EntryEditorView: View {
             Text("The story")
                 .appFont(13, weight: .semibold)
             // verbatim: a plain literal would render the Markdown and hide the syntax it teaches.
-            Text(verbatim: "Markdown works: **bold**, *italic*, `code`, [link](https://...).")
-                .appFont(11)
-                .foregroundStyle(Palette.mutedInk)
+            Text(
+                verbatim:
+                    "Markdown works: **bold**, *italic*, `code`, [link](https://...). Select text and press Cmd-B, Cmd-I, Cmd-E, or Cmd-L."
+            )
+            .appFont(11)
+            .foregroundStyle(Palette.mutedInk)
             textArea("Problem", "What was wrong, and who felt it?", text: $model.problem)
             textArea("Why", "Why it mattered enough to work on.", text: $model.why)
             textArea("Solution", "What you built or changed, and how.", text: $model.solution)
@@ -145,9 +148,44 @@ public struct EntryEditorView: View {
     }
 
     private func textArea(_ label: String, _ hint: String, text: Binding<String>) -> some View {
-        LabeledField(label) {
+        StoryField(label: label, hint: hint, text: text)
+    }
+}
+
+/// One story part: a multi-line field with format buttons (Cmd-B, Cmd-I, Cmd-E, Cmd-L) that
+/// wrap the selection in Markdown. The buttons and their shortcuts work only while this field
+/// has focus, so the shortcuts never reach the other fields.
+private struct StoryField: View {
+    let label: String
+    let hint: String
+    @Binding var text: String
+    @State private var selection: TextSelection?
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 2) {
+                Text(label)
+                    .appFont(12, weight: .semibold)
+                    .foregroundStyle(Palette.secondaryInk)
+                Spacer()
+                ForEach(MarkdownFormat.allCases, id: \.self) { format in
+                    Button {
+                        apply(format)
+                    } label: {
+                        Image(systemName: format.symbol)
+                            .frame(width: 22, height: 18)
+                    }
+                    .buttonStyle(.borderless)
+                    .keyboardShortcut(KeyEquivalent(format.key), modifiers: .command)
+                    .help("\(format.title) (Cmd-\(String(format.key).uppercased()))")
+                    .accessibilityLabel(format.title)
+                }
+                .opacity(isFocused ? 1 : 0)
+                .disabled(!isFocused)
+            }
             ZStack(alignment: .topLeading) {
-                if text.wrappedValue.isEmpty {
+                if text.isEmpty {
                     Text(hint)
                         .appFont(13)
                         .foregroundStyle(Palette.mutedInk)
@@ -155,15 +193,34 @@ public struct EntryEditorView: View {
                         .padding(.vertical, 8)
                         .allowsHitTesting(false)
                 }
-                TextEditor(text: text)
+                TextEditor(text: $text, selection: $selection)
                     .appFont(13)
                     .scrollContentBackground(.hidden)
                     .padding(4)
+                    .focused($isFocused)
             }
             .frame(minHeight: 64)
             .background(Palette.surface, in: RoundedRectangle(cornerRadius: Metrics.controlRadius))
-            .overlay(RoundedRectangle(cornerRadius: Metrics.controlRadius).strokeBorder(Palette.border))
+            .overlay(
+                RoundedRectangle(cornerRadius: Metrics.controlRadius)
+                    .strokeBorder(isFocused ? Palette.accent : Palette.borderStrong)
+            )
         }
+    }
+
+    private func apply(_ format: MarkdownFormat) {
+        let range: Range<String.Index> =
+            switch selection?.indices {
+            case .selection(let range): range
+            default: text.endIndex..<text.endIndex
+            }
+        let lower = text.distance(from: text.startIndex, to: range.lowerBound)
+        let upper = text.distance(from: text.startIndex, to: range.upperBound)
+        let result = format.apply(to: text, selection: lower..<upper)
+        text = result.text
+        let start = text.index(text.startIndex, offsetBy: result.selection.lowerBound)
+        let end = text.index(text.startIndex, offsetBy: result.selection.upperBound)
+        selection = TextSelection(range: start..<end)
     }
 }
 
