@@ -49,7 +49,7 @@ extension Entry {
     /// First story part as one plain line, for the card.
     var excerpt: String? {
         guard let first = story.first?.text else { return nil }
-        let plain = (try? AttributedString(markdown: first)).map { String($0.characters) } ?? first
+        let plain = String(StoryText.attributed(first).characters)
         return plain.components(separatedBy: .newlines).joined(separator: " ")
     }
 }
@@ -76,5 +76,31 @@ struct StorySection {
         case "Impact": .violet
         default: .blue
         }
+    }
+}
+
+/// Story text as shown: inline Markdown (**bold**, *italic*, `code`, links). The HTML tags
+/// people type by habit (<b>, <i>, <code>, <br>) are read as their Markdown twins.
+enum StoryText {
+    private static let tags: [(pattern: String, markdown: String)] = [
+        ("</?(b|strong)>", "**"),
+        ("</?(i|em)>", "*"),
+        ("</?code>", "`"),
+        ("<br\\s*/?>", "\n"),
+    ]
+
+    static func markdown(_ text: String) -> String {
+        tags.reduce(text) { text, tag in
+            text.replacingOccurrences(
+                of: tag.pattern,
+                with: tag.markdown,
+                options: [.regularExpression, .caseInsensitive]
+            )
+        }
+    }
+
+    static func attributed(_ text: String) -> AttributedString {
+        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        return (try? AttributedString(markdown: markdown(text), options: options)) ?? AttributedString(text)
     }
 }

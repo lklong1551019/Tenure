@@ -85,7 +85,8 @@ public struct EntryEditorView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("The story")
                 .appFont(13, weight: .semibold)
-            Text("Markdown works: **bold**, _italic_, `code`, and links.")
+            // verbatim: a plain literal would render the Markdown and hide the syntax it teaches.
+            Text(verbatim: "Markdown works: **bold**, *italic*, `code`, [link](https://...).")
                 .appFont(11)
                 .foregroundStyle(Palette.mutedInk)
             textArea("Problem", "What was wrong, and who felt it?", text: $model.problem)

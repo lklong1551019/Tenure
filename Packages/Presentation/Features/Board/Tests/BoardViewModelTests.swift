@@ -200,4 +200,13 @@ struct BoardViewModelTests {
         model.selection = .board(a.id)
         #expect(model.summary == "Jul 2017 - Aug 2019 · 1 task")
     }
+
+    @Test func storyTextReadsHTMLTagsAsMarkdown() {
+        #expect(StoryText.markdown("<b>access</b> and <EM>why</EM><br/>next") == "**access** and *why*\nnext")
+        let bold = StoryText.attributed("<b>access history</b> was slow")
+        #expect(String(bold.characters) == "access history was slow")
+        let runs = bold.runs.map { $0.inlinePresentationIntent }
+        #expect(runs.first == .stronglyEmphasized)
+        #expect(String(StoryText.attributed("**done** `x`").characters) == "done x")
+    }
 }
