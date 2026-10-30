@@ -154,6 +154,11 @@ extension AppModel: BoardActions {
         NSWorkspace.shared.open(url)
     }
 
+    func copyText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
     func now() -> Timestamp {
         dependencies?.clock.now() ?? Timestamp(Date())
     }

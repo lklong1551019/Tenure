@@ -15,6 +15,7 @@ public protocol BoardActions: AnyObject {
     /// The toolbar sync button: one round now, if signed in.
     func requestSync()
     func openLink(_ link: String)
+    func copyText(_ text: String)
     func now() -> Timestamp
 }
 
@@ -66,6 +67,23 @@ public struct BoardDraft: Identifiable, Sendable, Equatable {
     }
 }
 
+/// The year sheet's choices.
+public struct YearExportDraft: Identifiable, Sendable, Equatable {
+    public let id = UUID()
+    public var year: Int
+    /// Nil exports every board.
+    public var boardId: UUID?
+    public var options = MarkdownOptions()
+}
+
+/// A Markdown file waiting for the save panel.
+public struct ExportFile: Identifiable, Sendable, Equatable {
+    public let id = UUID()
+    /// Without the extension.
+    public let name: String
+    public let text: String
+}
+
 @MainActor
 @Observable
 public final class BoardViewModel {
@@ -86,6 +104,9 @@ public final class BoardViewModel {
     public var boardDraft: BoardDraft?
     /// The keyboard shortcuts sheet (Cmd-/).
     public var showsShortcuts = false
+    public var yearExport: YearExportDraft?
+    /// Set when a file is ready; the view shows the save panel.
+    public var exportFile: ExportFile?
     public private(set) var toast: String?
     public private(set) var errorMessage: String?
     /// Bumped by Cmd+F; the view moves focus to the toolbar filter field on each change.
@@ -153,6 +174,22 @@ public final class BoardViewModel {
 
     public var title: String {
         selectedBoard?.name ?? "All tasks"
+    }
+
+    /// "Jan 2026 - now · 4 tasks · 2 with metrics", under the board's name.
+    public var summary: String {
+        let entries =
+            selectedBoard.map { board in snapshot.liveEntries.filter { $0.boardId == board.id } }
+            ?? snapshot.liveEntries
+        var parts = [entries.count == 1 ? "1 task" : "\(entries.count) tasks"]
+        if let board = selectedBoard {
+            parts.insert(board.period, at: 0)
+        } else {
+            parts.append(boards.count == 1 ? "1 board" : "\(boards.count) boards")
+        }
+        let measured = entries.count { !$0.metrics.isEmpty }
+        if measured > 0 { parts.append("\(measured) with metrics") }
+        return parts.joined(separator: " · ")
     }
 
     // MARK: Filters
@@ -239,6 +276,77 @@ public final class BoardViewModel {
 
     public func openQuickSearch() {
         actions.openQuickSearch()
+    }
+
+    // MARK: Export
+
+    public var canExport: Bool { !snapshot.liveEntries.isEmpty }
+
+    /// The selected board, or every board on All tasks.
+    public func exportCurrent() {
+        let today = DayDate(actions.now().date)
+        if let board = selectedBoard {
+            let text = MarkdownExport.board(board, entries: snapshot.liveEntries, exportedOn: today)
+            exportFile = ExportFile(name: MarkdownExport.fileName(board.name), text: text)
+        } else {
+            let text = MarkdownExport.all(boards: boards, entries: snapshot.liveEntries, exportedOn: today)
+            exportFile = ExportFile(name: "Tenure", text: text)
+        }
+    }
+
+    /// Years with tasks, newest first.
+    public var exportYears: [Int] {
+        MarkdownExport.years(of: snapshot.liveEntries)
+    }
+
+    public func beginYearExport() {
+        guard let year = exportYears.first else { return }
+        yearExport = YearExportDraft(year: year, boardId: selectedBoard?.id)
+    }
+
+    /// "5 tasks from 2 boards", for the year sheet.
+    public func yearExportSummary(_ draft: YearExportDraft) -> String {
+        let groups = MarkdownExport.yearGroups(
+            draft.year,
+            boards: boards,
+            entries: snapshot.liveEntries,
+            boardId: draft.boardId
+        )
+        let tasks = groups.reduce(0) { $0 + $1.entries.count }
+        let taskText = tasks == 1 ? "1 task" : "\(tasks) tasks"
+        let boardText = groups.count == 1 ? "1 board" : "\(groups.count) boards"
+        return "\(taskText) from \(boardText), dated in \(draft.year)."
+    }
+
+    /// `draft` is the sheet's edited copy of `yearExport`.
+    public func exportYear(_ draft: YearExportDraft) {
+        let text = MarkdownExport.year(
+            draft.year,
+            boards: boards,
+            entries: snapshot.liveEntries,
+            boardId: draft.boardId,
+            options: draft.options,
+            exportedOn: DayDate(actions.now().date)
+        )
+        let boardName = draft.boardId.flatMap { id in boards.first { $0.id == id }?.name }
+        let name = [boardName ?? "Tenure", String(draft.year)].joined(separator: " ")
+        yearExport = nil
+        exportFile = ExportFile(name: MarkdownExport.fileName(name), text: text)
+    }
+
+    /// Called by the view once the save panel has written the file, or failed to.
+    public func finishExport(_ result: Result<Void, any Error>) {
+        exportFile = nil
+        switch result {
+        case .success: show("Exported")
+        case .failure: errorMessage = "Couldn't save the file."
+        }
+    }
+
+    public func copySelectedEntry() {
+        guard let entry = selectedEntry else { return }
+        actions.copyText(MarkdownExport.entry(entry))
+        show("Copied as Markdown")
     }
 
     public func requestSync() {

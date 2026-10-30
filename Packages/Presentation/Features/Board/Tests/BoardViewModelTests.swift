@@ -34,6 +34,12 @@ final class FakeBoardActions: BoardActions {
         openedLinks.append(link)
     }
 
+    var copied: [String] = []
+
+    func copyText(_ text: String) {
+        copied.append(text)
+    }
+
     func now() -> Timestamp { Timestamp(millis: 1_790_000_000_000) }
 }
 
@@ -150,5 +156,48 @@ struct BoardViewModelTests {
         model.newEntry()
         #expect(actions.edited?.boardId == a.id)
         #expect(actions.edited?.entry == nil)
+    }
+
+    @Test func exportsTheSelectedBoardOrEveryBoard() {
+        let model = model()
+        model.exportCurrent()
+        #expect(model.exportFile?.name == "Tenure")
+        #expect(model.exportFile?.text.hasPrefix("# Tenure") == true)
+        model.selection = .board(b.id)
+        model.exportCurrent()
+        #expect(model.exportFile?.name == "B")
+        #expect(model.exportFile?.text.contains("## Onboarding") == true)
+        #expect(model.exportFile?.text.contains("CI pipeline") == false)
+        model.finishExport(.success(()))
+        #expect(model.exportFile == nil)
+        #expect(model.toast == "Exported")
+    }
+
+    @Test func yearExportStartsOnTheNewestYearAndNamesTheFile() throws {
+        let model = model()
+        #expect(model.exportYears == [2025, 2018])
+        model.selection = .board(a.id)
+        model.beginYearExport()
+        var draft = try #require(model.yearExport)
+        #expect(draft.year == 2025)
+        #expect(draft.boardId == a.id)
+        draft.year = 2018
+        #expect(model.yearExportSummary(draft) == "1 task from 1 board, dated in 2018.")
+        model.exportYear(draft)
+        #expect(model.yearExport == nil)
+        #expect(model.exportFile?.name == "A 2018")
+        #expect(model.exportFile?.text.contains("### CI pipeline") == true)
+    }
+
+    @Test func copiesTheSelectedTask() {
+        let model = model()
+        model.copySelectedEntry()
+        #expect(actions.copied.isEmpty)
+        model.selectedEntryId = model.visibleEntries.first?.id
+        model.copySelectedEntry()
+        #expect(actions.copied.first?.hasPrefix("# Crash fix") == true)
+        #expect(model.summary == "3 tasks · 2 boards")
+        model.selection = .board(a.id)
+        #expect(model.summary == "Jul 2017 - Aug 2019 · 1 task")
     }
 }

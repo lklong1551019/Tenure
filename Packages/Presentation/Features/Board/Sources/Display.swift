@@ -6,7 +6,7 @@ extension EntryType {
     var tint: Tint {
         switch self {
         case .product: .violet
-        case .dev: .teal
+        case .dev: .blue
         case .bugFix: .red
         case .findings: .amber
         default: .neutral
@@ -41,15 +41,40 @@ extension Entry {
         return "\(date.short) - \(endDate.short)"
     }
 
-    /// Markdown sections in story order, empty ones left out.
-    var sections: [(title: String, text: String)] {
-        [
-            ("Problem", problem),
-            ("Why", why),
-            ("Solution", solution),
-            ("Impact", impact),
-            ("Difficulties and how they were solved", difficulties),
-        ]
-        .filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    /// The story parts to show, each with its mark: an SF Symbol and a tint.
+    var sections: [StorySection] {
+        story.map { StorySection(title: $0.title, text: $0.text) }
+    }
+
+    /// First story part as one plain line, for the card.
+    var excerpt: String? {
+        guard let first = story.first?.text else { return nil }
+        let plain = (try? AttributedString(markdown: first)).map { String($0.characters) } ?? first
+        return plain.components(separatedBy: .newlines).joined(separator: " ")
+    }
+}
+
+struct StorySection {
+    let title: String
+    let text: String
+
+    var symbol: String {
+        switch title {
+        case "Problem": "exclamationmark"
+        case "Why": "questionmark"
+        case "Solution": "checkmark"
+        case "Impact": "arrow.up.right"
+        default: "mountain.2"
+        }
+    }
+
+    var tint: Tint {
+        switch title {
+        case "Problem": .red
+        case "Why": .amber
+        case "Solution": .teal
+        case "Impact": .violet
+        default: .blue
+        }
     }
 }

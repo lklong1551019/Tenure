@@ -7,7 +7,7 @@ public enum Tint: Sendable, Hashable, CaseIterable {
     public var foreground: Color {
         switch self {
         case .neutral: Palette.secondaryInk
-        case .blue: Palette.accentInk
+        case .blue: Palette.blue
         case .violet: Palette.violet
         case .teal: Palette.teal
         case .amber: Palette.warning
@@ -19,7 +19,7 @@ public enum Tint: Sendable, Hashable, CaseIterable {
     public var background: Color {
         switch self {
         case .neutral: Palette.sidebar
-        case .blue: Palette.accentSoft
+        case .blue: Palette.blueSoft
         case .violet: Palette.violetSoft
         case .teal: Palette.tealSoft
         case .amber: Palette.warningSoft
@@ -41,9 +41,9 @@ public struct Badge: View {
 
     public var body: some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold))
+            .font(.system(size: 12, weight: .semibold))
             .lineLimit(1)
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 9)
             .padding(.vertical, 3)
             .foregroundStyle(tint.foreground)
             .background(tint.background, in: RoundedRectangle(cornerRadius: 6))
@@ -51,7 +51,7 @@ public struct Badge: View {
     }
 }
 
-/// Toggleable capsule for a filter, tinted while on.
+/// Toggleable capsule for a filter: a dot in the kind's color, filled with ink while on.
 public struct FilterChip: View {
     private let text: String
     private let tint: Tint
@@ -67,60 +67,96 @@ public struct FilterChip: View {
 
     public var body: some View {
         Button(action: action) {
-            Text(text)
-                .font(.system(size: 12, weight: .medium))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .foregroundStyle(isOn ? tint.foreground : Palette.mutedInk)
-                .background(isOn ? tint.background : .clear, in: Capsule())
-                .overlay(Capsule().strokeBorder(isOn ? .clear : Palette.border))
+            HStack(spacing: 7) {
+                Circle()
+                    .fill(tint.foreground)
+                    .frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
+                Text(text)
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 28)
+            .foregroundStyle(isOn ? Palette.ground : Palette.secondaryInk)
+            .background(isOn ? Palette.ink : Palette.surface, in: Capsule())
+            .overlay(Capsule().strokeBorder(isOn ? Palette.ink : Palette.borderStrong))
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 
-/// Before and after of one number, with how it was measured.
+/// Before and after of one number, the change between them, and how it was measured.
 public struct MetricTile: View {
     private let label: String
     private let before: String?
     private let after: String
+    private let change: String?
     private let note: String?
 
-    public init(label: String, before: String?, after: String, note: String?) {
+    public init(label: String, before: String?, after: String, change: String? = nil, note: String?) {
         self.label = label
         self.before = before
         self.after = after
+        self.change = change
         self.note = note
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Palette.secondaryInk)
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 if let before, !before.isEmpty {
-                    Text(before).foregroundStyle(Palette.mutedInk)
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 11))
+                    Text(before)
+                        .font(.system(size: 14))
+                        .strikethrough(color: Palette.mutedInk)
                         .foregroundStyle(Palette.mutedInk)
-                        .accessibilityLabel("to")
+                        .accessibilityLabel("from \(before)")
                 }
-                Text(after).foregroundStyle(Palette.success)
+                Text(after)
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundStyle(Palette.ink)
+                    .accessibilityLabel("to \(after)")
             }
-            .font(.system(size: 17, weight: .semibold))
+            if let change {
+                ChangePill(change)
+            }
             if let note, !note.isEmpty {
                 Text(note)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.mutedInk)
-                    .lineLimit(2)
+                    .lineLimit(3)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .background(Palette.sidebar, in: RoundedRectangle(cornerRadius: Metrics.controlRadius))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(Palette.sunken, in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.border))
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// A relative change such as "-44%", in green.
+public struct ChangePill: View {
+    private let text: String
+
+    public init(_ text: String) {
+        self.text = text
+    }
+
+    public var body: some View {
+        Text(text)
+            .font(.system(size: 12, weight: .semibold))
+            .monospacedDigit()
+            .foregroundStyle(Palette.success)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 1)
+            .background(Palette.successSoft, in: Capsule())
+            .fixedSize()
     }
 }
 

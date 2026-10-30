@@ -45,6 +45,25 @@ public struct BoardView: View {
         .sheet(isPresented: $model.showsShortcuts) {
             ShortcutsView { model.showsShortcuts = false }
         }
+        .sheet(item: $model.yearExport) { draft in
+            YearExportView(
+                draft: draft,
+                years: model.exportYears,
+                boards: model.boards,
+                summary: model.yearExportSummary,
+                onExport: model.exportYear,
+                onCancel: { model.yearExport = nil }
+            )
+        }
+        .fileExporter(
+            isPresented: Binding(get: { model.exportFile != nil }, set: { if !$0 { model.exportFile = nil } }),
+            document: model.exportFile.map { MarkdownDocument(text: $0.text) },
+            contentType: MarkdownDocument.markdown,
+            defaultFilename: model.exportFile?.name
+        ) { result in
+            // Not called on Cancel; the binding clears the file then.
+            model.finishExport(result.map { _ in () })
+        }
         .confirmationDialog(
             pendingDelete?.title ?? "",
             isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
@@ -83,6 +102,11 @@ public struct BoardView: View {
                         .tag(BoardSelection.board(board.id))
                         .contextMenu {
                             Button("Edit board...") { model.editBoard(board) }
+                            Button("Export as Markdown...") {
+                                model.selection = .board(board.id)
+                                model.exportCurrent()
+                            }
+                            .disabled(model.entryCount(of: board) == 0)
                             Button("Delete board...", role: .destructive) { pendingDelete = .board(board) }
                         }
                 }
@@ -115,7 +139,10 @@ public struct BoardView: View {
                 count(model.entryCount(of: board))
             }
         } icon: {
-            Image(systemName: board.isCurrent ? "building.2.fill" : "building.2")
+            // Filled for the job you hold now, hollow for past ones.
+            Image(systemName: board.isCurrent ? "circle.fill" : "circle")
+                .font(.system(size: 8))
+                .foregroundStyle(board.isCurrent ? Palette.accent : Palette.mutedInk)
         }
     }
 
@@ -130,8 +157,10 @@ public struct BoardView: View {
 
     private var content: some View {
         VStack(spacing: 0) {
-            filterBar
-            Divider()
+            if !model.boards.isEmpty {
+                boardHeader
+                filterBar
+            }
             if let message = model.errorMessage {
                 ErrorLine(message)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -179,25 +208,72 @@ public struct BoardView: View {
         .animation(.easeOut(duration: 0.2), value: model.toast)
     }
 
+    /// The board's name and span, with the actions that belong to it.
+    private var boardHeader: some View {
+        HStack(alignment: .bottom, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(model.title)
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(Palette.ink)
+                    .lineLimit(1)
+                Text(model.summary)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Palette.mutedInk)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 12)
+            Menu {
+                Button(model.selectedBoard.map { "\($0.name) as Markdown..." } ?? "All boards as Markdown...") {
+                    model.exportCurrent()
+                }
+                Button("A year as Markdown...") { model.beginYearExport() }
+                Divider()
+                Button("Copy task as Markdown") { model.copySelectedEntry() }
+                    .disabled(model.selectedEntry == nil)
+            } label: {
+                Label("Export", systemImage: "square.and.arrow.up")
+            }
+            .menuStyle(.button)
+            .fixedSize()
+            .disabled(!model.canExport)
+            .help("Export to Markdown")
+            Button {
+                model.newEntry()
+            } label: {
+                Label("New task", systemImage: "plus")
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .help("New task (Cmd-N)")
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 20)
+        .padding(.bottom, 14)
+    }
+
     private var filterBar: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
+            FilterChip("All kinds", tint: .neutral, isOn: model.types.isEmpty) {
+                model.types = []
+            }
             ForEach(model.availableTypes, id: \.self) { type in
                 FilterChip(type.title, tint: type.tint, isOn: model.types.contains(type)) {
                     model.toggle(type)
                 }
             }
             Spacer()
-            Text("\(model.visibleEntries.count) tasks")
-                .font(.system(size: 11))
-                .foregroundStyle(Palette.mutedInk)
+            if !model.types.isEmpty || !model.text.isEmpty {
+                Text("\(model.visibleEntries.count) shown")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Palette.mutedInk)
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 12)
     }
 
     private var grid: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 12)], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 14)], spacing: 14) {
                 ForEach(model.visibleEntries) { entry in
                     EntryCard(
                         entry: entry,
@@ -209,7 +285,9 @@ public struct BoardView: View {
                     .contextMenu { entryMenu(entry) }
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 24)
+            .padding(.top, 4)
+            .padding(.bottom, 24)
         }
     }
 
@@ -276,6 +354,10 @@ public struct BoardView: View {
         if entry.link?.isEmpty == false {
             Button("Open link") { model.openLink(of: entry) }
         }
+        Button("Copy as Markdown") {
+            model.selectedEntryId = entry.id
+            model.copySelectedEntry()
+        }
         Divider()
         Button("Delete...", role: .destructive) { pendingDelete = .entry(entry) }
     }
@@ -335,15 +417,6 @@ public struct BoardView: View {
             }
             .help("Find a task (Cmd-K)")
         }
-        ToolbarItem(placement: .primaryAction) {
-            Button {
-                model.newEntry()
-            } label: {
-                Label("New task", systemImage: "plus")
-            }
-            .help("New task (Cmd-N)")
-            .disabled(model.boards.isEmpty)
-        }
     }
 
     // MARK: Detail
@@ -356,7 +429,8 @@ public struct BoardView: View {
                 boardName: model.boardName(of: entry),
                 onEdit: { model.edit(entry) },
                 onDelete: { pendingDelete = .entry(entry) },
-                onOpenLink: { model.openLink(of: entry) }
+                onOpenLink: { model.openLink(of: entry) },
+                onCopy: { model.copySelectedEntry() }
             )
         } else {
             Text("Select a task to see its story.")

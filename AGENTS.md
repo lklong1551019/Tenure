@@ -55,9 +55,9 @@ pre-commit hook.
 | `Tenure.xcodeproj` | App target only; build settings live in `Config/Base.xcconfig` |
 | `App/Sources` | Composition root (`AppDependencies`), `AppModel`, scenes |
 | `Config/` | `Base.xcconfig` (tracked); `Local.xcconfig` and `Secrets.xcconfig` (ignored) |
-| `site/` | Home page and privacy policy for the Google OAuth consent screen (GitHub Pages) |
+| `site/` | Home page and privacy policy for the Google OAuth consent screen, release history (GitHub Pages) |
 | `docs/` | Architecture and Google setup |
-| `scripts/` | Dependency check, verify, git hooks, install |
+| `scripts/` | Dependency check, verify, git hooks, install, release, app icon renderer |
 
 Every module directory carries a `README.md` (Scope, Owns, Must not, Depends on, Tests). The
 pre-commit hook rejects a module without one.
@@ -82,6 +82,17 @@ cp Config/Local.example.xcconfig Config/Local.xcconfig   # then set DEVELOPMENT_
 
 `scripts/verify.sh` runs all of the above plus a secret-value scan of uncommitted changes.
 Run it before every commit.
+
+## Releasing
+
+From a clean `main`: `scripts/release.sh`, then `scripts/install-app.sh`. The release script
+picks the next `YY.MM.NN`, adds the `feat`/`fix`/`ui`/`perf` commit subjects since the last tag
+to `App/Sources/Changelog.json` (reword them there when it pauses), renders
+`site/releases.html`, runs `scripts/verify.sh`, then commits `chore: release <version>` and
+tags `v<version>`. Answering y to its push question pushes `main` and the tag, which deploys
+the release page at https://lklong1551019.github.io/Tenure/releases.html. `--dry-run` prints
+the version and notes and changes nothing. Commit subjects read `feat: add markdown export`
+(optionally `feat(scope): ...`); other types stay out of the notes.
 
 ## Conventions
 
