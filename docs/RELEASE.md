@@ -72,6 +72,20 @@ What happens, in order:
    - Anything else keeps the release local. Push later with
      `git push --follow-tags origin main`.
 
+### Choosing the version yourself
+
+By default the version follows the calendar month. To release a specific version instead,
+for example to start November's numbering early:
+
+```bash
+scripts/release.sh --dry-run --version 26.11.01
+scripts/release.sh --version 26.11.01
+```
+
+The build code follows from it (`26110101`). The script refuses a version that is not
+`YY.MM.NN`, already has a tag, or is not newer than the last release, so update checks keep
+working: an installed app only offers versions newer than its own.
+
 ## 3. Install
 
 ```bash
