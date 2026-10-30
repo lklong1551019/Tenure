@@ -1,1 +1,21 @@
-{"releases": []}
+{
+  "releases" : [
+    {
+      "code" : "26110101",
+      "date" : "2026-10-30",
+      "fixed" : [
+        "Render bold and italic typed as HTML tags, and show the Markdown hint as written",
+        "Steady split drag and a compact update window"
+      ],
+      "improved" : [
+        "Add text size setting, 40\/60 split, and tinted filter chips"
+      ],
+      "new" : [
+        "Scaffold Tenure macOS app with boards, tasks, and drive sync",
+        "Add markdown export, redesign, app icon, and release script",
+        "Add update checks, menu bar menu, Markdown format buttons, and a resizable split"
+      ],
+      "version" : "26.11.01"
+    }
+  ]
+}
