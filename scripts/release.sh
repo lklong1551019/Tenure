@@ -6,6 +6,9 @@
 #   scripts/release.sh                  release from main
 #   scripts/release.sh --dry-run        print the version and notes, change nothing
 #   scripts/release.sh --allow-branch   release from a branch other than main
+#   scripts/release.sh --version 26.11.01
+#                                       this version instead of the next one for this month;
+#                                       must be newer than the last release tag
 #
 # Version  YY.MM.NN  (NN: release number within the month, from 01)
 # Code     YYMMNNBB  (BB: build of that version; 01 for the tagged commit itself)
@@ -23,10 +26,12 @@ cd "$root"
 
 dry_run=0
 allow_branch=0
+requested=""
 while [ $# -gt 0 ]; do
   case $1 in
     --dry-run) dry_run=1 ;;
     --allow-branch) allow_branch=1 ;;
+    --version) requested=${2:?--version needs a value such as 26.11.01}; shift ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
   shift
@@ -44,13 +49,24 @@ if [ $dry_run -eq 0 ]; then
   [ -z "$(git status --porcelain)" ] || fail "uncommitted changes; commit or stash them first"
 fi
 
-month=$(date +%y.%m)
-count=$(git tag --list "v$month.*" | wc -l | tr -d ' ')
-number=$(printf '%02d' $((10#$count + 1)))
-version="$month.$number"
+previous=$(git tag --list 'v[0-9][0-9].[0-9][0-9].[0-9][0-9]' --sort=-v:refname | head -1)
+if [ -n "$requested" ]; then
+  printf '%s' "$requested" | grep -Eq '^[0-9]{2}\.(0[1-9]|1[0-2])\.(0[1-9]|[1-9][0-9])$' \
+    || fail "--version $requested: expected YY.MM.NN, such as 26.11.01"
+  [ -z "$(git tag --list "v$requested")" ] || fail "v$requested already exists"
+  if [ -n "$previous" ]; then
+    newest=$(printf '%s\n%s\n' "${previous#v}" "$requested" | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)
+    [ "$newest" = "$requested" ] || fail "--version $requested is not newer than $previous"
+  fi
+  version=$requested
+else
+  month=$(date +%y.%m)
+  count=$(git tag --list "v$month.*" | wc -l | tr -d ' ')
+  number=$(printf '%02d' $((10#$count + 1)))
+  version="$month.$number"
+fi
 code="$(printf '%s' "$version" | tr -d '.')01"
 today=$(date +%Y-%m-%d)
-previous=$(git tag --list 'v[0-9][0-9].[0-9][0-9].[0-9][0-9]' --sort=-v:refname | head -1)
 range=${previous:+$previous..}HEAD
 files=(App/Sources/Changelog.json Config/Base.xcconfig site/releases.html)
 push=(git push --follow-tags origin "${branch:-main}")
