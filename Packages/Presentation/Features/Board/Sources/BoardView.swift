@@ -12,6 +12,8 @@ public struct BoardView: View {
     @AppStorage("boardLayout") private var storedLayout: BoardLayout = .grid
     @AppStorage("entrySort") private var storedSort: EntrySort = .newest
 
+    static let minimumListWidth: CGFloat = 320
+
     public init(model: BoardViewModel) {
         self.model = model
     }
@@ -20,11 +22,17 @@ public struct BoardView: View {
         NavigationSplitView {
             sidebar
                 .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 300)
-        } content: {
-            content
-                .navigationSplitViewColumnWidth(min: 380, ideal: 560)
         } detail: {
-            detail
+            // Tasks and the selected task's story share the space 40 to 60.
+            GeometryReader { proxy in
+                HStack(spacing: 0) {
+                    content
+                        .frame(width: max(Self.minimumListWidth, proxy.size.width * 0.4))
+                    Divider()
+                    detail
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
         }
         .searchable(text: $model.text, placement: .toolbar, prompt: "Filter tasks (Cmd+F)")
         .searchFocused($isSearchFocused)
@@ -132,7 +140,7 @@ public struct BoardView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(board.name)
                     Text(board.period)
-                        .font(.system(size: 11))
+                        .appFont(11)
                         .foregroundStyle(Palette.mutedInk)
                 }
                 Spacer()
@@ -141,14 +149,14 @@ public struct BoardView: View {
         } icon: {
             // Filled for the job you hold now, hollow for past ones.
             Image(systemName: board.isCurrent ? "circle.fill" : "circle")
-                .font(.system(size: 8))
+                .appFont(8)
                 .foregroundStyle(board.isCurrent ? Palette.accent : Palette.mutedInk)
         }
     }
 
     private func count(_ value: Int) -> some View {
         Text("\(value)")
-            .font(.system(size: 11))
+            .appFont(11)
             .foregroundStyle(Palette.mutedInk)
             .monospacedDigit()
     }
@@ -208,63 +216,83 @@ public struct BoardView: View {
         .animation(.easeOut(duration: 0.2), value: model.toast)
     }
 
-    /// The board's name and span, with the actions that belong to it.
+    /// The board's name and span, with the actions that belong to it. The buttons move under
+    /// the title when the column is narrow.
     private var boardHeader: some View {
-        HStack(alignment: .bottom, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(model.title)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(Palette.ink)
-                    .lineLimit(1)
-                Text(model.summary)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Palette.mutedInk)
-                    .lineLimit(1)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .bottom, spacing: 10) {
+                boardTitle
+                Spacer(minLength: 12)
+                boardActions
             }
-            Spacer(minLength: 12)
-            Menu {
-                Button(model.selectedBoard.map { "\($0.name) as Markdown..." } ?? "All boards as Markdown...") {
-                    model.exportCurrent()
-                }
-                Button("A year as Markdown...") { model.beginYearExport() }
-                Divider()
-                Button("Copy task as Markdown") { model.copySelectedEntry() }
-                    .disabled(model.selectedEntry == nil)
-            } label: {
-                Label("Export", systemImage: "square.and.arrow.up")
+            VStack(alignment: .leading, spacing: 12) {
+                boardTitle
+                HStack(spacing: 10) { boardActions }
             }
-            .menuStyle(.button)
-            .fixedSize()
-            .disabled(!model.canExport)
-            .help("Export to Markdown")
-            Button {
-                model.newEntry()
-            } label: {
-                Label("New task", systemImage: "plus")
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            .help("New task (Cmd-N)")
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
         .padding(.bottom, 14)
     }
 
-    private var filterBar: some View {
-        HStack(spacing: 8) {
-            FilterChip("All kinds", tint: .neutral, isOn: model.types.isEmpty) {
-                model.types = []
+    private var boardTitle: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(model.title)
+                .appFont(24, weight: .bold)
+                .foregroundStyle(Palette.ink)
+                .lineLimit(1)
+            Text(model.summary)
+                .appFont(13)
+                .foregroundStyle(Palette.mutedInk)
+                .fixedSize()
+        }
+    }
+
+    @ViewBuilder
+    private var boardActions: some View {
+        Menu {
+            Button(model.selectedBoard.map { "\($0.name) as Markdown..." } ?? "All boards as Markdown...") {
+                model.exportCurrent()
             }
-            ForEach(model.availableTypes, id: \.self) { type in
-                FilterChip(type.title, tint: type.tint, isOn: model.types.contains(type)) {
-                    model.toggle(type)
+            Button("A year as Markdown...") { model.beginYearExport() }
+            Divider()
+            Button("Copy task as Markdown") { model.copySelectedEntry() }
+                .disabled(model.selectedEntry == nil)
+        } label: {
+            Label("Export", systemImage: "square.and.arrow.up")
+        }
+        .menuStyle(.button)
+        .fixedSize()
+        .disabled(!model.canExport)
+        .help("Export to Markdown")
+        Button {
+            model.newEntry()
+        } label: {
+            Label("New task", systemImage: "plus")
+        }
+        .buttonStyle(PrimaryButtonStyle())
+        .fixedSize()
+        .help("New task (Cmd-N)")
+    }
+
+    private var filterBar: some View {
+        HStack(alignment: .top, spacing: 8) {
+            FlowRow(spacing: 8) {
+                FilterChip("All kinds", tint: .teal, isOn: model.types.isEmpty) {
+                    model.types = []
+                }
+                ForEach(model.availableTypes, id: \.self) { type in
+                    FilterChip(type.title, tint: type.tint, isOn: model.types.contains(type)) {
+                        model.toggle(type)
+                    }
                 }
             }
-            Spacer()
             if !model.types.isEmpty || !model.text.isEmpty {
                 Text("\(model.visibleEntries.count) shown")
-                    .font(.system(size: 12))
+                    .appFont(12)
                     .foregroundStyle(Palette.mutedInk)
+                    .fixedSize()
+                    .padding(.top, 6)
             }
         }
         .padding(.horizontal, 24)
@@ -280,8 +308,11 @@ public struct BoardView: View {
                         boardName: model.selectedBoard == nil ? model.boardName(of: entry) : nil,
                         isSelected: model.selectedEntryId == entry.id
                     )
-                    .onTapGesture(count: 2) { model.edit(entry) }
+                    // Select on the first click; a double-click alongside it opens the editor.
+                    // Stacking onTapGesture(count: 2) above onTapGesture would hold every
+                    // single click until the double-click interval passed.
                     .onTapGesture { model.selectedEntryId = entry.id }
+                    .simultaneousGesture(TapGesture(count: 2).onEnded { model.edit(entry) })
                     .contextMenu { entryMenu(entry) }
                 }
             }
@@ -365,10 +396,10 @@ public struct BoardView: View {
     private func emptyState(_ title: String, _ message: String, action: (String, () -> Void)) -> some View {
         VStack(spacing: 10) {
             Text(title)
-                .font(.system(size: 17, weight: .semibold))
+                .appFont(17, weight: .semibold)
                 .foregroundStyle(Palette.ink)
             Text(message)
-                .font(.system(size: 13))
+                .appFont(13)
                 .foregroundStyle(Palette.secondaryInk)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 340)
@@ -434,7 +465,7 @@ public struct BoardView: View {
             )
         } else {
             Text("Select a task to see its story.")
-                .font(.system(size: 13))
+                .appFont(13)
                 .foregroundStyle(Palette.secondaryInk)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Palette.ground)

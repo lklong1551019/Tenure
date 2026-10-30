@@ -31,11 +31,11 @@ public struct QuickSearchView: View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 18))
+                    .appFont(18)
                     .foregroundStyle(Palette.secondaryInk)
                 TextField("Search tasks, tags, links", text: $model.query)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 18))
+                    .appFont(18)
                     .focused($isFocused)
                     .onAppear { isFocused = true }
                     .onKeyPress(.downArrow) {
@@ -70,7 +70,7 @@ public struct QuickSearchView: View {
                 hint("Command Return", "Open the task's link")
                 hint("Up / Down", "Move the selection")
             }
-            .font(.system(size: 12))
+            .appFont(12)
             .foregroundStyle(Palette.secondaryInk)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 18)
@@ -83,7 +83,7 @@ public struct QuickSearchView: View {
         VStack(spacing: 2) {
             if model.results.isEmpty {
                 Text(model.query.isEmpty ? "No tasks yet." : "No tasks match.")
-                    .font(.system(size: 13))
+                    .appFont(13)
                     .foregroundStyle(Palette.secondaryInk)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
@@ -107,7 +107,7 @@ public struct QuickSearchView: View {
 
     private func keyCap(_ key: String) -> some View {
         Text(key)
-            .font(.system(size: 11))
+            .appFont(11)
             .foregroundStyle(Palette.mutedInk)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -118,11 +118,11 @@ public struct QuickSearchView: View {
         HStack(spacing: 12) {
             Badge(entry.type.title, tint: isSelected ? .neutral : entry.type.tint)
             Text(entry.name)
-                .font(.system(size: 14, weight: .semibold))
+                .appFont(14, weight: .semibold)
                 .lineLimit(1)
             Spacer()
             Text(isSelected ? "Return to show" : "\(model.boardName(of: entry)), \(entry.date.description)")
-                .font(.system(size: 12))
+                .appFont(12)
                 .foregroundStyle(isSelected ? Color.white : Palette.mutedInk)
         }
         .foregroundStyle(isSelected ? Color.white : Palette.ink)

@@ -18,7 +18,7 @@ struct BoardEditorView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(draft.isNew ? "New board" : "Edit board")
-                .font(.system(size: 17, weight: .semibold))
+                .appFont(17, weight: .semibold)
             LabeledField("Name") {
                 TextField("Company A", text: $draft.name)
                     .fieldChrome()

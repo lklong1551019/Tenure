@@ -9,7 +9,7 @@ public struct PrimaryButtonStyle: ButtonStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .semibold))
+            .appFont(13, weight: .semibold)
             .foregroundStyle(Palette.onAccent)
             .padding(.horizontal, 18)
             .frame(minHeight: height)
@@ -30,7 +30,7 @@ public struct SecondaryButtonStyle: ButtonStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .medium))
+            .appFont(13, weight: .medium)
             .foregroundStyle(Palette.ink)
             .padding(.horizontal, 16)
             .frame(minHeight: height)
@@ -53,7 +53,7 @@ public struct ErrorLine: View {
 
     public var body: some View {
         Label(message, systemImage: "exclamationmark.circle")
-            .font(.system(size: 12))
+            .appFont(12)
             .foregroundStyle(Palette.danger)
     }
 }
@@ -71,7 +71,7 @@ public struct LabeledField<Control: View>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
-                .font(.system(size: 12, weight: .semibold))
+                .appFont(12, weight: .semibold)
                 .foregroundStyle(Palette.secondaryInk)
             control
         }
@@ -88,7 +88,7 @@ public struct KeyCap: View {
 
     public var body: some View {
         Text(keys)
-            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .appFont(11, weight: .medium, design: .rounded)
             .foregroundStyle(Palette.secondaryInk)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
