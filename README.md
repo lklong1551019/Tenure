@@ -37,4 +37,5 @@ or imports a copy.
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): modules, data model, merge, and sync
 - [docs/GOOGLE-SETUP.md](docs/GOOGLE-SETUP.md): Google Cloud project and OAuth client
+- [docs/RELEASE.md](docs/RELEASE.md): cutting a release, the release history page, and installing
 - [AGENTS.md](AGENTS.md): working notes for changing this repository

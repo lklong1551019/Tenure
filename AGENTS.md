@@ -56,7 +56,7 @@ pre-commit hook.
 | `App/Sources` | Composition root (`AppDependencies`), `AppModel`, scenes |
 | `Config/` | `Base.xcconfig` (tracked); `Local.xcconfig` and `Secrets.xcconfig` (ignored) |
 | `site/` | Home page and privacy policy for the Google OAuth consent screen, release history (GitHub Pages) |
-| `docs/` | Architecture and Google setup |
+| `docs/` | Architecture, Google setup, releasing |
 | `scripts/` | Dependency check, verify, git hooks, install, release, app icon renderer |
 
 Every module directory carries a `README.md` (Scope, Owns, Must not, Depends on, Tests). The
@@ -92,7 +92,8 @@ to `App/Sources/Changelog.json` (reword them there when it pauses), renders
 tags `v<version>`. Answering y to its push question pushes `main` and the tag, which deploys
 the release page at https://lklong1551019.github.io/Tenure/releases.html. `--dry-run` prints
 the version and notes and changes nothing. Commit subjects read `feat: add markdown export`
-(optionally `feat(scope): ...`); other types stay out of the notes.
+(optionally `feat(scope): ...`); other types stay out of the notes. Step by step, with what
+to do when it fails: [docs/RELEASE.md](docs/RELEASE.md).
 
 ## Conventions
 
