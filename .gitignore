@@ -1,0 +1,47 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# IDEs
+.idea/
+.vscode/
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+DerivedData/
+build/
+*.xcresult
+*.dSYM
+*.dSYM.zip
+*.ipa
+*.xcarchive
+
+# Swift Package Manager (Package.resolved stays tracked)
+.build/
+.swiftpm/
+Packages/.build/
+Packages/.swiftpm/
+
+# Secrets and signing - never commit
+Config/Secrets.xcconfig
+Config/Local.xcconfig
+GoogleService-Info.plist
+client_secret*.json
+.env
+.env.*
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+
+# Data files, including test output
+tenure.json
+
+# Agent local state
+HANDOFF.md
+.claude/settings.local.json
