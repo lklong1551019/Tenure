@@ -3,15 +3,7 @@ import Domain
 import Foundation
 
 extension EntryType {
-    var tint: Tint {
-        switch self {
-        case .product: .violet
-        case .dev: .blue
-        case .bugFix: .red
-        case .findings: .amber
-        default: .neutral
-        }
-    }
+    var tint: Tint { .kind(rawValue) }
 }
 
 extension YearMonth {
@@ -29,21 +21,17 @@ extension DayDate {
 }
 
 extension Board {
-    /// "Jul 2017 - Aug 2019", or "Sep 2019 - now".
-    var period: String {
-        "\(start.short) - \(end?.short ?? "now")"
-    }
+    /// "Jul 2017 - Aug 2019", or "Sep 2019 - now", in the Mac's language.
+    var period: String { period(\.short) }
 }
 
 extension Entry {
-    var period: String {
-        guard let endDate, endDate != date else { return date.short }
-        return "\(date.short) - \(endDate.short)"
-    }
+    /// "12 Mar 2026", or a span, in the Mac's language.
+    var period: String { period(\.short) }
 
     /// The story parts to show, each with its mark: an SF Symbol and a tint.
     var sections: [StorySection] {
-        story.map { StorySection(title: $0.title, text: $0.text) }
+        story.map { StorySection(part: $0.part, text: $0.text) }
     }
 
     /// First story part as one plain line, for the card.
@@ -55,26 +43,28 @@ extension Entry {
 }
 
 struct StorySection {
-    let title: String
+    let part: StoryPart
     let text: String
 
+    var title: String { part.title }
+
     var symbol: String {
-        switch title {
-        case "Problem": "exclamationmark"
-        case "Why": "questionmark"
-        case "Solution": "checkmark"
-        case "Impact": "arrow.up.right"
-        default: "mountain.2"
+        switch part {
+        case .problem: "exclamationmark"
+        case .why: "questionmark"
+        case .solution: "checkmark"
+        case .impact: "arrow.up.right"
+        case .difficulties: "mountain.2"
         }
     }
 
     var tint: Tint {
-        switch title {
-        case "Problem": .red
-        case "Why": .amber
-        case "Solution": .teal
-        case "Impact": .violet
-        default: .blue
+        switch part {
+        case .problem: .red
+        case .why: .amber
+        case .solution: .teal
+        case .impact: .violet
+        case .difficulties: .blue
         }
     }
 }

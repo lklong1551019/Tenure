@@ -30,7 +30,7 @@ How a task gets from the editor into `tenure.json` on this Mac and in Google Dri
 | `Data/DriveSync` | Google OAuth (PKCE), Drive REST v3 client |
 | `Presentation/DesignSystem` | Palette, card chrome, buttons, badges, chips, metric tiles |
 | `Presentation/Features/*` | Board, EntryEditor, Search, Settings |
-| `App` | Composition root, `AppModel`, scenes and menu commands |
+| `App` | Composition root, `AppModel`, scenes, menu commands, menu bar menu, `GitHubReleaseFeed` |
 
 Dependencies point inward: `Domain` imports Foundation only; Data and Presentation modules
 depend on `Domain` and never on each other. `scripts/check-deps.sh` enforces it.
@@ -88,3 +88,14 @@ older than 90 days are purged.
 One folder and one file, each found by an `appProperties` marker (`tnRole`: `folder`,
 `ledger`), never by name. Debug builds use the `dev` namespace: folder "Tenure (dev)", markers
 `folder-dev` and `ledger-dev`. See `docs/GOOGLE-SETUP.md` for the Cloud project.
+
+## Update checks
+
+Tenure is built and installed on each Mac (`scripts/install-app.sh`), so there is no download
+to fetch: the app only tells you a newer version exists and what changed. `GitHubReleaseFeed`
+(App) reads `App/Sources/Changelog.json` from `main` on GitHub; that file changes only in
+release commits, so it lists exactly the released versions. `UpdateCheck` (Domain) decodes it
+and keeps the versions newer than this build; `UpdateViewModel` (Settings) runs the check from
+Tenure > Check for Updates, Settings > About, and every 12 hours in the background, opening the
+Software Update window once per new version. The feed is a port implemented in App rather
+than a Data module: one HTTPS GET with no credentials did not justify a module of its own.

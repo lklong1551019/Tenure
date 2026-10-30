@@ -11,6 +11,7 @@ struct TenureApp: App {
     @State private var model = AppModel()
     @AppStorage(AppTheme.storageKey) private var theme: AppTheme = .system
     @AppStorage(TextSize.storageKey) private var textSize: TextSize = .standard
+    @AppStorage(MenuBarIcon.storageKey) private var showsMenuBarIcon = true
     /// Read once: the bundle's version does not change while running.
     private let about = AboutInfo.load()
 
@@ -26,6 +27,9 @@ struct TenureApp: App {
         }
         .defaultSize(width: 1320, height: 820)
         .commands {
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesButton(updates: model.updates)
+            }
             CommandGroup(replacing: .newItem) {
                 Button("New Task") { model.newEntry() }
                     .keyboardShortcut("n", modifiers: [.command])
@@ -79,10 +83,28 @@ struct TenureApp: App {
             }
         }
 
+        Window("Software Update", id: UpdateView.windowID) {
+            UpdateView(model: model.updates)
+                .textSize(textSize)
+                .preferredColorScheme(theme.colorScheme)
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+
+        MenuBarExtra("Tenure", systemImage: "rectangle.stack", isInserted: $showsMenuBarIcon) {
+            MenuBarContent(model: model)
+        }
+
         Settings {
             Group {
                 if let settings = model.settings {
-                    SettingsView(model: settings, theme: $theme, textSize: $textSize, about: about)
+                    SettingsView(
+                        model: settings,
+                        theme: $theme,
+                        textSize: $textSize,
+                        showsMenuBarIcon: $showsMenuBarIcon,
+                        about: about
+                    )
                 } else {
                     Text("Open the main window first.")
                         .padding(40)
@@ -114,8 +136,22 @@ extension View {
     }
 }
 
+/// Tenure > Check for Updates...: opens the window and checks again.
+private struct CheckForUpdatesButton: View {
+    let updates: UpdateViewModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Check for Updates...") {
+            openWindow(id: UpdateView.windowID)
+            Task { await updates.check() }
+        }
+    }
+}
+
 struct RootView: View {
     @Bindable var model: AppModel
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         content
@@ -127,6 +163,8 @@ struct RootView: View {
                     QuickSearchView(model: quickSearch)
                 }
             }
+            // A background check found a version not announced before.
+            .onChange(of: model.updates.windowRequests) { openWindow(id: UpdateView.windowID) }
     }
 
     @ViewBuilder

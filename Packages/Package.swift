@@ -59,6 +59,11 @@ let package = Package(
             path: "Presentation/Features/EntryEditor/Tests"
         ),
         .testTarget(
+            name: "SettingsFeatureTests",
+            dependencies: ["SettingsFeature", "Domain"],
+            path: "Presentation/Features/Settings/Tests"
+        ),
+        .testTarget(
             name: "IntegrationTests",
             dependencies: ["Domain", "Persistence"],
             path: "IntegrationTests"

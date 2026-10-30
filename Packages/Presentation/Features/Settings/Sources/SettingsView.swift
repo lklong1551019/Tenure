@@ -1,5 +1,4 @@
 import DesignSystem
-import Domain
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -8,6 +7,7 @@ public struct SettingsView: View {
     @Bindable private var model: SettingsViewModel
     @Binding private var theme: AppTheme
     @Binding private var textSize: TextSize
+    @Binding private var showsMenuBarIcon: Bool
     private let about: AboutInfo
     @State private var confirmsSignOut = false
     @State private var exportDocument: JSONFile?
@@ -17,11 +17,13 @@ public struct SettingsView: View {
         model: SettingsViewModel,
         theme: Binding<AppTheme>,
         textSize: Binding<TextSize>,
+        showsMenuBarIcon: Binding<Bool>,
         about: AboutInfo
     ) {
         self.model = model
         _theme = theme
         _textSize = textSize
+        _showsMenuBarIcon = showsMenuBarIcon
         self.about = about
     }
 
@@ -48,7 +50,7 @@ public struct SettingsView: View {
             await model.observe()
         }
         .fileExporter(
-            isPresented: Binding(get: { exportDocument != nil }, set: { if !$0 { exportDocument = nil } }),
+            isPresented: Binding(present: $exportDocument),
             document: exportDocument,
             contentType: .json,
             defaultFilename: "tenure.json"
@@ -77,6 +79,10 @@ public struct SettingsView: View {
                 }
             }
             Text("Also in the View menu: Cmd-Plus, Cmd-Minus, and Cmd-0 for the default.")
+                .appFont(12)
+                .foregroundStyle(Palette.secondaryInk)
+            Toggle("Show in menu bar", isOn: $showsMenuBarIcon)
+            Text("New task, quick search, and recently changed tasks from the menu bar.")
                 .appFont(12)
                 .foregroundStyle(Palette.secondaryInk)
         }

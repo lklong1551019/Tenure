@@ -20,9 +20,15 @@ public final class QuickSearchViewModel: Identifiable {
 
     public nonisolated let id = UUID()
     public var query = "" {
-        didSet { selectedIndex = 0 }
+        didSet {
+            selectedIndex = 0
+            refresh()
+        }
     }
     public private(set) var selectedIndex = 0
+    /// The best matches, or the newest tasks while the query is empty. Ranked once per change
+    /// of the query or the tasks, not on every read.
+    public private(set) var results: [Entry] = []
 
     private var entries: [Entry] = []
     private let actions: any QuickSearchActions
@@ -31,17 +37,18 @@ public final class QuickSearchViewModel: Identifiable {
         self.actions = actions
     }
 
-    public var results: [Entry] {
-        let ranked = query.isEmpty ? entries.sorted { $0.date > $1.date } : EntrySearch.search(query, in: entries)
-        return Array(ranked.prefix(Self.maximumResults))
-    }
-
     public var selected: Entry? {
         results.indices.contains(selectedIndex) ? results[selectedIndex] : nil
     }
 
     public func load() async {
         entries = await actions.searchableEntries()
+        refresh()
+    }
+
+    private func refresh() {
+        let ranked = query.isEmpty ? entries.sorted { $0.date > $1.date } : EntrySearch.search(query, in: entries)
+        results = Array(ranked.prefix(Self.maximumResults))
     }
 
     public func boardName(of entry: Entry) -> String { actions.boardName(of: entry) }

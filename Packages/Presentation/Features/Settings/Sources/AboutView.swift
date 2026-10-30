@@ -7,6 +7,7 @@ struct AboutView: View {
     static let privacyPolicy = URL(string: "https://lklong1551019.github.io/Tenure/privacy.html")!
 
     let info: AboutInfo
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -35,6 +36,7 @@ struct AboutView: View {
             .foregroundStyle(Palette.secondaryInk)
             .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 16) {
+                Button("Check for Updates...") { openWindow(id: UpdateView.windowID) }
                 Link("Source code", destination: Self.repository)
                 Link("Privacy policy", destination: Self.privacyPolicy)
             }

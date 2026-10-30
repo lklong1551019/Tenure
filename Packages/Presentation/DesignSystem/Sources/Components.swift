@@ -1,18 +1,14 @@
 import SwiftUI
 
 public struct PrimaryButtonStyle: ButtonStyle {
-    private let height: CGFloat
-
-    public init(large: Bool = false) {
-        height = large ? Metrics.largeControlHeight : Metrics.controlHeight
-    }
+    public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .appFont(13, weight: .semibold)
             .foregroundStyle(Palette.onAccent)
             .padding(.horizontal, 18)
-            .frame(minHeight: height)
+            .frame(minHeight: Metrics.controlHeight)
             .background(
                 Palette.accent.opacity(configuration.isPressed ? 0.85 : 1),
                 in: RoundedRectangle(cornerRadius: Metrics.controlRadius)
@@ -22,18 +18,14 @@ public struct PrimaryButtonStyle: ButtonStyle {
 }
 
 public struct SecondaryButtonStyle: ButtonStyle {
-    private let height: CGFloat
-
-    public init(large: Bool = false) {
-        height = large ? Metrics.largeControlHeight : Metrics.controlHeight
-    }
+    public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .appFont(13, weight: .medium)
             .foregroundStyle(Palette.ink)
             .padding(.horizontal, 16)
-            .frame(minHeight: height)
+            .frame(minHeight: Metrics.controlHeight)
             .background(
                 configuration.isPressed ? Palette.sidebar : Palette.surface,
                 in: RoundedRectangle(cornerRadius: Metrics.controlRadius)
@@ -94,5 +86,13 @@ public struct KeyCap: View {
             .padding(.vertical, 2)
             .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Palette.border))
             .fixedSize()
+    }
+}
+
+extension Binding where Value == Bool {
+    /// True while `item` holds a value; setting false clears it. For sheets, dialogs, and
+    /// file panels driven by an optional.
+    public init<Item>(present item: Binding<Item?>) {
+        self.init(get: { item.wrappedValue != nil }, set: { if !$0 { item.wrappedValue = nil } })
     }
 }

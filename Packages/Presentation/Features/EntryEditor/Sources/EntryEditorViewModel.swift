@@ -123,10 +123,6 @@ public final class EntryEditorViewModel: Identifiable {
         metrics.removeAll { $0.id == id }
     }
 
-    public func moveMetrics(from source: IndexSet, to destination: Int) {
-        metrics.move(fromOffsets: source, toOffset: destination)
-    }
-
     /// The task as it would be saved; `updatedAt` is stamped by the store.
     public var entry: Entry {
         Entry(

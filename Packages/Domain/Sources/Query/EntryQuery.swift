@@ -25,29 +25,30 @@ public struct EntryQuery: Sendable, Hashable {
     }
 
     public func apply(to entries: [Entry]) -> [Entry] {
-        entries
+        let terms = EntrySearch.terms(of: text)
+        return
+            entries
             .filter { entry in
                 (boardId == nil || entry.boardId == boardId)
                     && (types.isEmpty || types.contains(entry.type))
-                    && EntrySearch.matches(text, entry)
+                    && EntrySearch.matches(terms: terms, entry)
             }
             .sorted(by: order)
     }
 
+    /// Dates first when sorting by date: the localized name comparison is the slow part, so it
+    /// runs only to break a tie or when sorting by name.
     private func order(_ lhs: Entry, _ rhs: Entry) -> Bool {
-        let byName = lhs.name.localizedStandardCompare(rhs.name)
         switch sort {
-        case .newest:
-            if lhs.date != rhs.date { return lhs.date > rhs.date }
-        case .oldest:
-            if lhs.date != rhs.date { return lhs.date < rhs.date }
-        case .nameAscending:
-            if byName != .orderedSame { return byName == .orderedAscending }
-        case .nameDescending:
-            if byName != .orderedSame { return byName == .orderedDescending }
+        case .newest where lhs.date != rhs.date: return lhs.date > rhs.date
+        case .oldest where lhs.date != rhs.date: return lhs.date < rhs.date
+        default: break
+        }
+        let byName = lhs.name.localizedStandardCompare(rhs.name)
+        if byName != .orderedSame {
+            return sort == .nameDescending ? byName == .orderedDescending : byName == .orderedAscending
         }
         // Stable tiebreak, so equal keys never swap places between refreshes.
-        if byName != .orderedSame { return byName == .orderedAscending }
         return lhs.id.uuidString < rhs.id.uuidString
     }
 }

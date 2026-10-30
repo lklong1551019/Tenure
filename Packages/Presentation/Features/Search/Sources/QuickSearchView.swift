@@ -58,7 +58,7 @@ public struct QuickSearchView: View {
                         }
                         return .handled
                     }
-                keyCap("esc")
+                KeyCap("esc")
             }
             .padding(.horizontal, 18)
             .frame(height: 56)
@@ -90,8 +90,9 @@ public struct QuickSearchView: View {
             }
             ForEach(Array(model.results.enumerated()), id: \.element.id) { index, entry in
                 row(entry, isSelected: index == model.selectedIndex)
-                    .onTapGesture(count: 2) { model.showSelected() }
+                    // Select on the first click; a double-click alongside it shows the task.
                     .onTapGesture { model.select(entry) }
+                    .simultaneousGesture(TapGesture(count: 2).onEnded { model.showSelected() })
             }
         }
         .padding(8)
@@ -99,33 +100,24 @@ public struct QuickSearchView: View {
 
     private func hint(_ key: String, _ action: String) -> some View {
         HStack(spacing: 8) {
-            keyCap(key)
+            KeyCap(key)
                 .frame(width: 112, alignment: .leading)
             Text(action)
         }
     }
 
-    private func keyCap(_ key: String) -> some View {
-        Text(key)
-            .appFont(11)
-            .foregroundStyle(Palette.mutedInk)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Palette.border))
-    }
-
     private func row(_ entry: Entry, isSelected: Bool) -> some View {
         HStack(spacing: 12) {
             Badge(entry.type.title, tint: isSelected ? .neutral : entry.type.tint)
-            Text(entry.name)
+            Text(entry.displayName)
                 .appFont(14, weight: .semibold)
                 .lineLimit(1)
             Spacer()
             Text(isSelected ? "Return to show" : "\(model.boardName(of: entry)), \(entry.date.description)")
                 .appFont(12)
-                .foregroundStyle(isSelected ? Color.white : Palette.mutedInk)
+                .foregroundStyle(isSelected ? Palette.onAccent : Palette.mutedInk)
         }
-        .foregroundStyle(isSelected ? Color.white : Palette.ink)
+        .foregroundStyle(isSelected ? Palette.onAccent : Palette.ink)
         .padding(.horizontal, 12)
         .frame(height: 46)
         .background(isSelected ? Palette.accent : Color.clear, in: RoundedRectangle(cornerRadius: 8))
@@ -135,13 +127,5 @@ public struct QuickSearchView: View {
 }
 
 extension EntryType {
-    fileprivate var tint: Tint {
-        switch self {
-        case .product: .violet
-        case .dev: .teal
-        case .bugFix: .red
-        case .findings: .amber
-        default: .neutral
-        }
-    }
+    fileprivate var tint: Tint { .kind(rawValue) }
 }
