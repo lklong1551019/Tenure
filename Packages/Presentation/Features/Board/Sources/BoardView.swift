@@ -13,8 +13,9 @@ public struct BoardView: View {
     @AppStorage("entrySort") private var storedSort: EntrySort = .newest
     /// Share of the space right of the sidebar that the task list takes; the story gets the rest.
     @AppStorage("listRatio") private var listRatio = Self.defaultListRatio
-    /// `listRatio` when the current drag of the split handle began.
-    @State private var dragStartRatio: Double?
+    /// The ratio while the split handle is dragged; saved to `listRatio` when the drag ends,
+    /// so the drag does not write UserDefaults on every mouse move.
+    @State private var dragRatio: Double?
 
     static let defaultListRatio = 0.4
     static let minimumListWidth: CGFloat = 320
@@ -100,7 +101,7 @@ public struct BoardView: View {
 
     private func listWidth(in total: CGFloat) -> CGFloat {
         let upper = max(Self.minimumListWidth, total - Self.minimumDetailWidth)
-        return min(max(total * listRatio, Self.minimumListWidth), upper)
+        return min(max(total * (dragRatio ?? listRatio), Self.minimumListWidth), upper)
     }
 
     /// A hairline with a wider grab area. Drag to resize; double-click to go back to 40/60.
@@ -112,18 +113,22 @@ public struct BoardView: View {
             .contentShape(Rectangle())
             .pointerStyle(.frameResize(position: .trailing))
             .gesture(
-                DragGesture(minimumDistance: 1)
+                // Global coordinates: the handle moves with the drag, and a translation measured
+                // in its own moving frame fed back into the width and made the split jump.
+                DragGesture(minimumDistance: 1, coordinateSpace: .global)
                     .onChanged { drag in
                         guard totalWidth > Self.minimumListWidth + Self.minimumDetailWidth else { return }
-                        let start = dragStartRatio ?? listRatio
-                        dragStartRatio = start
                         // Kept within what both columns' minimums allow, so dragging back
                         // responds at once instead of first undoing an overshoot.
                         let lowest = Self.minimumListWidth / totalWidth
                         let highest = (totalWidth - Self.minimumDetailWidth) / totalWidth
-                        listRatio = min(max(start + drag.translation.width / totalWidth, lowest), highest)
+                        let ratio = min(max(listRatio + drag.translation.width / totalWidth, lowest), highest)
+                        withTransaction(Transaction(animation: nil)) { dragRatio = ratio }
                     }
-                    .onEnded { _ in dragStartRatio = nil }
+                    .onEnded { _ in
+                        if let dragRatio { listRatio = dragRatio }
+                        dragRatio = nil
+                    }
             )
             .onTapGesture(count: 2) { listRatio = Self.defaultListRatio }
             .accessibilityLabel("Resize task list")

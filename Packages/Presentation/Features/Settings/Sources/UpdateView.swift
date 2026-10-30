@@ -17,18 +17,21 @@ public struct UpdateView: View {
     }
 
     public var body: some View {
+        // Sized by its content (the window uses .contentSize): compact when there is nothing
+        // to list, taller with release notes.
         VStack(alignment: .leading, spacing: 0) {
             header
                 .padding(24)
             Divider()
             content
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             Divider()
             footer
                 .padding(.horizontal, 24)
                 .padding(.vertical, 14)
         }
-        .frame(width: 520, height: 480)
+        .frame(width: 600)
+        .fixedSize(horizontal: false, vertical: true)
         .background(Palette.surface)
         .task {
             if model.state == .idle { await model.check() }
@@ -69,12 +72,23 @@ public struct UpdateView: View {
                 }
                 .padding(24)
             }
+            .frame(height: 360)
         case .failed(let message):
             ErrorLine(message)
                 .padding(24)
-        default:
-            EmptyView()
+        case .upToDate:
+            message("You have the newest version. Release notes for every version are on the web.")
+        case .idle, .checking:
+            message("Looking at the published releases on GitHub...")
         }
+    }
+
+    private func message(_ text: String) -> some View {
+        Text(text)
+            .appFont(13)
+            .foregroundStyle(Palette.secondaryInk)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(24)
     }
 
     private var installHint: some View {
@@ -96,20 +110,27 @@ public struct UpdateView: View {
         }
     }
 
+    /// The switch on its own line, the buttons below it at their natural width, so large text
+    /// sizes never wrap a button label.
     private var footer: some View {
-        HStack(spacing: 12) {
-            Toggle("Check every 12 hours", isOn: $model.checksAutomatically)
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle("Check for updates every 12 hours", isOn: $model.checksAutomatically)
                 .toggleStyle(.checkbox)
-                .appFont(12)
-            Spacer()
-            Button("Release notes") { model.openReleasePage() }
-                .buttonStyle(SecondaryButtonStyle())
-            Button("Check again") { Task { await model.check() } }
-                .buttonStyle(SecondaryButtonStyle())
-                .disabled(model.state == .checking)
-            Button("Close") { dismissWindow(id: Self.windowID) }
-                .buttonStyle(PrimaryButtonStyle())
-                .keyboardShortcut(.defaultAction)
+                .appFont(13)
+            HStack(spacing: 10) {
+                Spacer()
+                Button("Release notes") { model.openReleasePage() }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .fixedSize()
+                Button("Check again") { Task { await model.check() } }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .fixedSize()
+                    .disabled(model.state == .checking)
+                Button("Close") { dismissWindow(id: Self.windowID) }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .fixedSize()
+                    .keyboardShortcut(.defaultAction)
+            }
         }
     }
 
