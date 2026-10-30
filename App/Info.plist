@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Merged with the generated Info.plist. Values come from the ignored Config/Secrets.xcconfig;
+     without it they expand to empty and sync stays off. -->
+<plist version="1.0">
+<dict>
+	<key>GoogleClientID</key>
+	<string>$(GOOGLE_CLIENT_ID_ACTIVE)</string>
+	<key>GoogleRedirectScheme</key>
+	<string>$(GOOGLE_REDIRECT_SCHEME_ACTIVE)</string>
+	<key>DriveNamespace</key>
+	<string>$(DRIVE_NAMESPACE)</string>
+</dict>
+</plist>

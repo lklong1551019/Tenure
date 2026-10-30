@@ -1,0 +1,56 @@
+// App target build settings. Personal values come from git-ignored files included at the end,
+// so they can override anything here:
+//   Local.xcconfig   - DEVELOPMENT_TEAM, optional bundle id (template: Local.example.xcconfig)
+//   Secrets.xcconfig - Google OAuth client (template: Secrets.example.xcconfig)
+
+PRODUCT_NAME = $(TARGET_NAME)
+// Debug builds get their own bundle id, so they have their own sandbox container (data file),
+// Keychain items, settings, Google client, and Drive folder: an experiment in Xcode never
+// touches the installed app's data.
+APP_BUNDLE_ID = com.lklong1997.Tenure
+BUNDLE_ID_SUFFIX[config=Debug] = .dev
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_ID)$(BUNDLE_ID_SUFFIX)
+MARKETING_VERSION = 26.10.01
+CURRENT_PROJECT_VERSION = 26100101
+
+SDKROOT = macosx
+SUPPORTED_PLATFORMS = macosx
+MACOSX_DEPLOYMENT_TARGET = 26.0
+SWIFT_VERSION = 6.0
+SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor
+SWIFT_APPROACHABLE_CONCURRENCY = YES
+SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES
+SWIFT_EMIT_LOC_STRINGS = YES
+STRING_CATALOG_GENERATE_SYMBOLS = YES
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks
+
+// Signing and sandbox. The entitlements file carries the keychain access group that holds the
+// Google refresh token.
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_ENTITLEMENTS = App/Tenure.entitlements
+ENABLE_APP_SANDBOX = YES
+ENABLE_HARDENED_RUNTIME = YES
+ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES
+ENABLE_USER_SELECTED_FILES = readwrite
+
+GENERATE_INFOPLIST_FILE = YES
+// Only the Google client keys; everything else is generated.
+INFOPLIST_FILE = App/Info.plist
+INFOPLIST_KEY_CFBundleDisplayName = Tenure
+INFOPLIST_KEY_CFBundleDisplayName[config=Debug] = Tenure Dev
+INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.productivity
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor
+ENABLE_PREVIEWS = YES
+
+// Each bundle id has its own iOS OAuth client (Secrets.xcconfig) and its own marker in Drive;
+// empty client keys turn sync off for that build.
+GOOGLE_CLIENT_ID_ACTIVE = $(GOOGLE_CLIENT_ID)
+GOOGLE_REDIRECT_SCHEME_ACTIVE = $(GOOGLE_REVERSED_CLIENT_ID)
+GOOGLE_CLIENT_ID_ACTIVE[config=Debug] = $(GOOGLE_CLIENT_ID_DEV)
+GOOGLE_REDIRECT_SCHEME_ACTIVE[config=Debug] = $(GOOGLE_REVERSED_CLIENT_ID_DEV)
+DRIVE_NAMESPACE[config=Debug] = dev
+
+#include? "Local.xcconfig"
+#include? "Secrets.xcconfig"

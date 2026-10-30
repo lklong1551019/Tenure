@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Pre-commit guard for agent and human commits.
+# Install with: scripts/git-hooks/install.sh
+#
+# Checks:
+#   1. No secret or signing files staged (backstop for .gitignore and `git add -f`).
+#   2. CLAUDE.md stays a symlink to AGENTS.md.
+#   3. No secret-shaped values in staged additions (gitleaks when installed, patterns always).
+#   4. Dependency rule and module READMEs (scripts/check-deps.sh).
+#   5. swift-format lint on staged Swift files.
+
+set -u
+
+fail=0
+root=$(git rev-parse --show-toplevel)
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# --- 1. Blocked files --------------------------------------------------------
+blocked_patterns=(
+  '(^|/)Secrets\.xcconfig$'
+  '(^|/)GoogleService-Info\.plist$'
+  '(^|/)client_secret.*\.json$'
+  '(^|/)\.env(\..*)?$'
+  '\.p12$'
+  '\.cer$'
+  '\.mobileprovision$'
+  '\.provisionprofile$'
+)
+for pattern in "${blocked_patterns[@]}"; do
+  hits=$(printf '%s\n' "$staged" | grep -E "$pattern" || true)
+  if [ -n "$hits" ]; then
+    echo "ERROR: refusing to commit secret or signing file(s):" >&2
+    printf '  %s\n' $hits >&2
+    fail=1
+  fi
+done
+
+# --- 2. Agent-config symlink integrity ---------------------------------------
+for link in CLAUDE.md; do
+  mode=$(git ls-files --stage -- "$link" | awk '{print $1}')
+  if [ -n "$mode" ] && [ "$mode" != "120000" ]; then
+    echo "ERROR: $link must remain a symlink (edit AGENTS.md instead)." >&2
+    fail=1
+  fi
+done
+
+# --- 3. Secret-shaped values -------------------------------------------------
+# Placeholder values in this repository are the literal `temp`.
+if command -v gitleaks >/dev/null 2>&1; then
+  if ! gitleaks protect --staged --redact -v >/dev/null 2>&1; then
+    echo "ERROR: gitleaks found potential secrets. Run: gitleaks protect --staged --redact -v" >&2
+    fail=1
+  fi
+fi
+value_patterns='(gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|glpat-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9_-]{24,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|xox[abposr]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)'
+added=$(git diff --cached -U0 --diff-filter=ACMR -- . ':(exclude)scripts/git-hooks/pre-commit' ':(exclude)scripts/verify.sh' \
+  | grep -E '^\+[^+]' | grep -E "$value_patterns" || true)
+if [ -n "$added" ]; then
+  echo "ERROR: staged lines look like real secret values. Use the placeholder 'temp'." >&2
+  printf '%s\n' "$added" | cut -c1-60 | sed 's/^/  /' >&2
+  fail=1
+fi
+
+# --- 4. Dependency rule and module READMEs -----------------------------------
+if [ -d "$root/Packages" ]; then
+  "$root/scripts/check-deps.sh" >/dev/null || fail=1
+fi
+
+# --- 5. swift-format ---------------------------------------------------------
+swift_files=$(printf '%s\n' "$staged" | grep -E '\.swift$' || true)
+if [ -n "$swift_files" ]; then
+  # shellcheck disable=SC2086
+  if ! (cd "$root" && xcrun swift-format lint --strict $swift_files); then
+    echo "ERROR: swift-format lint failed. Fix with: xcrun swift-format format -i <files>" >&2
+    fail=1
+  fi
+fi
+
+exit $fail
