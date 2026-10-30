@@ -32,6 +32,16 @@ struct TenureApp: App {
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isReady)
             }
+            CommandGroup(replacing: .importExport) {
+                Button("Export Board as Markdown...") { model.board?.exportCurrent() }
+                    .keyboardShortcut("e", modifiers: [.command, .shift])
+                    .disabled(!(model.board?.canExport ?? false))
+                Button("Export a Year as Markdown...") { model.board?.beginYearExport() }
+                    .disabled(!(model.board?.canExport ?? false))
+                Button("Copy Task as Markdown") { model.board?.copySelectedEntry() }
+                    .keyboardShortcut("c", modifiers: [.command, .shift])
+                    .disabled(model.board?.selectedEntry == nil)
+            }
             // Replaces the standard Find items: Cmd+F filters the board, Cmd+K opens quick search.
             CommandGroup(replacing: .textEditing) {
                 Button("Filter Tasks") { model.board?.focusSearch() }

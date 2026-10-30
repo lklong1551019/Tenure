@@ -10,7 +10,7 @@ public struct PrimaryButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Palette.onAccent)
             .padding(.horizontal, 18)
             .frame(minHeight: height)
             .background(
@@ -38,7 +38,7 @@ public struct SecondaryButtonStyle: ButtonStyle {
                 configuration.isPressed ? Palette.sidebar : Palette.surface,
                 in: RoundedRectangle(cornerRadius: Metrics.controlRadius)
             )
-            .overlay(RoundedRectangle(cornerRadius: Metrics.controlRadius).strokeBorder(Palette.border))
+            .overlay(RoundedRectangle(cornerRadius: Metrics.controlRadius).strokeBorder(Palette.borderStrong))
             .contentShape(Rectangle())
     }
 }
