@@ -180,7 +180,7 @@ struct EntryDetailView: View {
                     .appFont(11, weight: .semibold)
                     .tracking(0.6)
                     .foregroundStyle(Palette.mutedInk)
-                Text(markdown(section.text))
+                Text(StoryText.attributed(section.text))
                     .appFont(14)
                     .lineSpacing(4)
                     .foregroundStyle(Palette.ink)
@@ -226,11 +226,6 @@ struct EntryDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(Palette.sunken, in: RoundedRectangle(cornerRadius: Metrics.cornerRadius))
-    }
-
-    private func markdown(_ text: String) -> AttributedString {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
     }
 }
 
