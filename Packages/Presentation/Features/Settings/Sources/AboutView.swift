@@ -17,9 +17,9 @@ struct AboutView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Tenure")
-                        .font(.system(size: 17, weight: .semibold))
+                        .appFont(17, weight: .semibold)
                     Text("Version \(info.version) (\(info.code))")
-                        .font(.system(size: 13))
+                        .appFont(13)
                         .foregroundStyle(Palette.secondaryInk)
                         .textSelection(.enabled)
                     if info.isDevelopmentBuild {
@@ -31,14 +31,14 @@ struct AboutView: View {
             Text(
                 "A record of what you did in your career: boards per company, the story of each task, and the numbers that prove it."
             )
-            .font(.system(size: 13))
+            .appFont(13)
             .foregroundStyle(Palette.secondaryInk)
             .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 16) {
                 Link("Source code", destination: Self.repository)
                 Link("Privacy policy", destination: Self.privacyPolicy)
             }
-            .font(.system(size: 13))
+            .appFont(13)
         }
         .padding(24)
         .frame(width: 480, alignment: .leading)

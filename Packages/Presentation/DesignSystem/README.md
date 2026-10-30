@@ -8,9 +8,10 @@ Shared look: color tokens, card chrome, buttons, badges, chips, metric tiles, to
 
 ## Owns
 
-- `Palette`, `Metrics`, `.cardSurface()`, `.fieldChrome()`
+- `Palette`, `Metrics`, `.cardSurface()`, `.cardShadow()`, `.fieldChrome()`
+- `.appFont(_:weight:design:)` and the `textScale` environment value (the text size setting)
 - `PrimaryButtonStyle`, `SecondaryButtonStyle`, `ErrorLine`, `LabeledField`, `KeyCap`
-- `Tint`, `Badge`, `FilterChip`, `MetricTile`, `Toast`
+- `Tint`, `Badge`, `FilterChip`, `MetricTile`, `ChangePill`, `Toast`, `FlowRow`
 
 ## Must not
 

@@ -15,7 +15,7 @@ public struct EntryEditorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Text(model.isNew ? "New task" : "Edit task")
-                        .font(.system(size: 17, weight: .semibold))
+                        .appFont(17, weight: .semibold)
                     basics
                     story
                     metrics
@@ -84,9 +84,9 @@ public struct EntryEditorView: View {
     private var story: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("The story")
-                .font(.system(size: 13, weight: .semibold))
+                .appFont(13, weight: .semibold)
             Text("Markdown works: **bold**, _italic_, `code`, and links.")
-                .font(.system(size: 11))
+                .appFont(11)
                 .foregroundStyle(Palette.mutedInk)
             textArea("Problem", "What was wrong, and who felt it?", text: $model.problem)
             textArea("Why", "Why it mattered enough to work on.", text: $model.why)
@@ -105,14 +105,14 @@ public struct EntryEditorView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Metrics")
-                    .font(.system(size: 13, weight: .semibold))
+                    .appFont(13, weight: .semibold)
                 Spacer()
                 Button("Add metric", systemImage: "plus") { model.addMetric() }
                     .buttonStyle(.borderless)
             }
             if model.metrics.isEmpty {
                 Text("Numbers that prove the impact: before and after, and how they were measured.")
-                    .font(.system(size: 12))
+                    .appFont(12)
                     .foregroundStyle(Palette.secondaryInk)
             }
             ForEach($model.metrics) { $metric in
@@ -148,14 +148,14 @@ public struct EntryEditorView: View {
             ZStack(alignment: .topLeading) {
                 if text.wrappedValue.isEmpty {
                     Text(hint)
-                        .font(.system(size: 13))
+                        .appFont(13)
                         .foregroundStyle(Palette.mutedInk)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 8)
                         .allowsHitTesting(false)
                 }
                 TextEditor(text: text)
-                    .font(.system(size: 13))
+                    .appFont(13)
                     .scrollContentBackground(.hidden)
                     .padding(4)
             }

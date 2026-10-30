@@ -7,14 +7,21 @@ import UniformTypeIdentifiers
 public struct SettingsView: View {
     @Bindable private var model: SettingsViewModel
     @Binding private var theme: AppTheme
+    @Binding private var textSize: TextSize
     private let about: AboutInfo
     @State private var confirmsSignOut = false
     @State private var exportDocument: JSONFile?
     @State private var isImporting = false
 
-    public init(model: SettingsViewModel, theme: Binding<AppTheme>, about: AboutInfo) {
+    public init(
+        model: SettingsViewModel,
+        theme: Binding<AppTheme>,
+        textSize: Binding<TextSize>,
+        about: AboutInfo
+    ) {
         self.model = model
         _theme = theme
+        _textSize = textSize
         self.about = about
     }
 
@@ -62,7 +69,15 @@ public struct SettingsView: View {
             }
             .pickerStyle(.segmented)
             Text("System follows the macOS appearance setting.")
-                .font(.system(size: 12))
+                .appFont(12)
+                .foregroundStyle(Palette.secondaryInk)
+            Picker("Text size", selection: $textSize) {
+                ForEach(TextSize.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            Text("Also in the View menu: Cmd-Plus, Cmd-Minus, and Cmd-0 for the default.")
+                .appFont(12)
                 .foregroundStyle(Palette.secondaryInk)
         }
     }
@@ -80,7 +95,7 @@ public struct SettingsView: View {
                 Text(
                     "Keeps a copy of your data in a \"Tenure\" folder in your Google Drive. Tenure can see only the files it creates."
                 )
-                .font(.system(size: 12))
+                .appFont(12)
                 .foregroundStyle(Palette.secondaryInk)
                 if let error = model.signInError {
                     ErrorLine(error)
@@ -125,14 +140,14 @@ public struct SettingsView: View {
                 Spacer()
             }
             Text("Import merges a tenure.json into your data: newer edits win, nothing is lost.")
-                .font(.system(size: 12))
+                .appFont(12)
                 .foregroundStyle(Palette.secondaryInk)
             if let message = model.dataMessage {
                 if model.dataMessageIsError {
                     ErrorLine(message)
                 } else {
                     Text(message)
-                        .font(.system(size: 12))
+                        .appFont(12)
                         .foregroundStyle(Palette.success)
                 }
             }

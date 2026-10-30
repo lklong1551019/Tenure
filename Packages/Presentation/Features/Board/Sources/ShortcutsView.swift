@@ -15,6 +15,8 @@ struct ShortcutsView: View {
                 Shortcut(keys: "⌘N", action: "New task"),
                 Shortcut(keys: "⇧⌘N", action: "New board"),
                 Shortcut(keys: "Double-click", action: "Edit a task"),
+                Shortcut(keys: "⇧⌘E", action: "Export the board as Markdown"),
+                Shortcut(keys: "⇧⌘C", action: "Copy the selected task as Markdown"),
             ]
         ),
         (
@@ -31,6 +33,9 @@ struct ShortcutsView: View {
             [
                 Shortcut(keys: "⌘1", action: "Show as grid"),
                 Shortcut(keys: "⌘2", action: "Show as list"),
+                Shortcut(keys: "⌘+", action: "Bigger text"),
+                Shortcut(keys: "⌘-", action: "Smaller text"),
+                Shortcut(keys: "⌘0", action: "Default text size"),
             ]
         ),
         (
@@ -54,18 +59,18 @@ struct ShortcutsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Keyboard shortcuts")
-                .font(.system(size: 17, weight: .semibold))
+                .appFont(17, weight: .semibold)
             ForEach(Self.groups, id: \.title) { group in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(group.title)
-                        .font(.system(size: 11, weight: .semibold))
+                        .appFont(11, weight: .semibold)
                         .foregroundStyle(Palette.mutedInk)
                     ForEach(group.shortcuts, id: \.self) { shortcut in
                         HStack(spacing: 12) {
                             KeyCap(shortcut.keys)
                                 .frame(width: 96, alignment: .leading)
                             Text(shortcut.action)
-                                .font(.system(size: 13))
+                                .appFont(13)
                                 .foregroundStyle(Palette.ink)
                         }
                     }
@@ -100,7 +105,7 @@ struct ShortcutHint: View {
             Button("All shortcuts (⌘/)", action: onShowAll)
                 .buttonStyle(.link)
         }
-        .font(.system(size: 11))
+        .appFont(11)
         .foregroundStyle(Palette.secondaryInk)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)

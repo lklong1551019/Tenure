@@ -10,6 +10,7 @@ import SwiftUI
 struct TenureApp: App {
     @State private var model = AppModel()
     @AppStorage(AppTheme.storageKey) private var theme: AppTheme = .system
+    @AppStorage(TextSize.storageKey) private var textSize: TextSize = .standard
     /// Read once: the bundle's version does not change while running.
     private let about = AboutInfo.load()
 
@@ -17,6 +18,7 @@ struct TenureApp: App {
         Window("Tenure", id: "main") {
             RootView(model: model)
                 .frame(minWidth: 1000, minHeight: 640)
+                .textSize(textSize)
                 .preferredColorScheme(theme.colorScheme)
                 .task { await model.start() }
                 .onAppear { apply(theme) }
@@ -64,18 +66,29 @@ struct TenureApp: App {
                     .keyboardShortcut("2", modifiers: [.command])
                     .disabled(!model.isReady)
                 Divider()
+                Button("Bigger Text") { textSize = textSize.larger ?? textSize }
+                    .keyboardShortcut("+", modifiers: [.command])
+                    .disabled(textSize.larger == nil)
+                Button("Smaller Text") { textSize = textSize.smaller ?? textSize }
+                    .keyboardShortcut("-", modifiers: [.command])
+                    .disabled(textSize.smaller == nil)
+                Button("Default Text Size") { textSize = .standard }
+                    .keyboardShortcut("0", modifiers: [.command])
+                    .disabled(textSize == .standard)
+                Divider()
             }
         }
 
         Settings {
             Group {
                 if let settings = model.settings {
-                    SettingsView(model: settings, theme: $theme, about: about)
+                    SettingsView(model: settings, theme: $theme, textSize: $textSize, about: about)
                 } else {
                     Text("Open the main window first.")
                         .padding(40)
                 }
             }
+            .textSize(textSize)
             .preferredColorScheme(theme.colorScheme)
         }
     }
@@ -89,6 +102,15 @@ struct TenureApp: App {
             case .light: NSAppearance(named: .aqua)
             case .dark: NSAppearance(named: .darkAqua)
             }
+    }
+}
+
+extension View {
+    /// Scales every `appFont`, and the default font of text that sets none (lists, tables,
+    /// form labels), by the text size setting.
+    fileprivate func textSize(_ size: TextSize) -> some View {
+        environment(\.textScale, size.scale)
+            .font(.system(size: (13 * size.scale).rounded()))
     }
 }
 

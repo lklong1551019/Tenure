@@ -32,7 +32,7 @@ struct YearExportView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Export a year")
-                .font(.system(size: 17, weight: .semibold))
+                .appFont(17, weight: .semibold)
             LabeledField("Year") {
                 Picker("Year", selection: $draft.year) {
                     ForEach(years, id: \.self) { year in
@@ -59,7 +59,7 @@ struct YearExportView: View {
                 .toggleStyle(.checkbox)
             }
             Text(summary(draft))
-                .font(.system(size: 13))
+                .appFont(13)
                 .foregroundStyle(Palette.secondaryInk)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)

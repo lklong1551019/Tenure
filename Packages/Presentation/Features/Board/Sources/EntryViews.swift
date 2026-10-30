@@ -14,23 +14,23 @@ struct EntryCard: View {
                 Badge(entry.type.title, tint: entry.type.tint)
                 Spacer()
                 Text(entry.date.short)
-                    .font(.system(size: 12))
+                    .appFont(12)
                     .foregroundStyle(Palette.mutedInk)
             }
             Text(entry.name.isEmpty ? "Untitled" : entry.name)
-                .font(.system(size: 15, weight: .semibold))
+                .appFont(15, weight: .semibold)
                 .foregroundStyle(Palette.ink)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
             if let excerpt = entry.excerpt {
                 Text(excerpt)
-                    .font(.system(size: 13))
+                    .appFont(13)
                     .foregroundStyle(Palette.secondaryInk)
                     .lineLimit(2)
                     .lineSpacing(2)
             } else {
                 Text("No write-up yet.")
-                    .font(.system(size: 13))
+                    .appFont(13)
                     .italic()
                     .foregroundStyle(Palette.mutedInk)
             }
@@ -52,7 +52,7 @@ struct EntryCard: View {
                         ChangePill(change)
                     }
                 }
-                .font(.system(size: 12))
+                .appFont(12)
                 .lineLimit(1)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 7)
@@ -70,7 +70,7 @@ struct EntryCard: View {
                         Text("#\(tag)")
                     }
                 }
-                .font(.system(size: 12))
+                .appFont(12)
                 .foregroundStyle(Palette.mutedInk)
                 .lineLimit(1)
             }
@@ -144,7 +144,7 @@ struct EntryDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Badge(entry.type.title, tint: entry.type.tint)
             Text(entry.name.isEmpty ? "Untitled" : entry.name)
-                .font(.system(size: 24, weight: .bold))
+                .appFont(24, weight: .bold)
                 .foregroundStyle(Palette.ink)
                 .textSelection(.enabled)
             FlowRow {
@@ -159,7 +159,7 @@ struct EntryDetailView: View {
                 }
                 ForEach(entry.tags, id: \.self) { tag in
                     Text("#\(tag)")
-                        .font(.system(size: 12))
+                        .appFont(12)
                         .foregroundStyle(Palette.mutedInk)
                         .padding(.vertical, 4)
                 }
@@ -170,18 +170,18 @@ struct EntryDetailView: View {
     private func sectionView(_ section: StorySection) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: section.symbol)
-                .font(.system(size: 12, weight: .bold))
+                .appFont(12, weight: .bold)
                 .foregroundStyle(section.tint.foreground)
                 .frame(width: 28, height: 28)
                 .background(section.tint.background, in: RoundedRectangle(cornerRadius: 8))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text(section.title.uppercased())
-                    .font(.system(size: 11, weight: .semibold))
+                    .appFont(11, weight: .semibold)
                     .tracking(0.6)
                     .foregroundStyle(Palette.mutedInk)
                 Text(markdown(section.text))
-                    .font(.system(size: 14))
+                    .appFont(14)
                     .lineSpacing(4)
                     .foregroundStyle(Palette.ink)
                     .textSelection(.enabled)
@@ -194,7 +194,7 @@ struct EntryDetailView: View {
     private var metrics: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("METRICS")
-                .font(.system(size: 11, weight: .semibold))
+                .appFont(11, weight: .semibold)
                 .tracking(0.6)
                 .foregroundStyle(Palette.mutedInk)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 10)], spacing: 10) {
@@ -214,10 +214,10 @@ struct EntryDetailView: View {
     private var emptyStory: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("No write-up yet")
-                .font(.system(size: 15, weight: .semibold))
+                .appFont(15, weight: .semibold)
                 .foregroundStyle(Palette.ink)
             Text("Add the problem, why it mattered, the solution, the impact, and the numbers that prove it.")
-                .font(.system(size: 13))
+                .appFont(13)
                 .foregroundStyle(Palette.secondaryInk)
                 .fixedSize(horizontal: false, vertical: true)
             Button("Write the story", action: onEdit)
@@ -248,65 +248,12 @@ private struct MetaChip: View {
 
     var body: some View {
         Label(text, systemImage: systemImage)
-            .font(.system(size: 12))
+            .appFont(12)
             .lineLimit(1)
             .truncationMode(.middle)
             .foregroundStyle(tint?.foreground ?? Palette.secondaryInk)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(tint?.background ?? Palette.sunken, in: RoundedRectangle(cornerRadius: 6))
-    }
-}
-
-/// Lays children out left to right, wrapping to a new line when the row is full.
-private struct FlowRow: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let rows = arrange(subviews, width: proposal.width ?? .infinity)
-        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
-        let width = rows.map(\.width).max() ?? 0
-        return CGSize(width: proposal.width ?? width, height: height)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var y = bounds.minY
-        for row in arrange(subviews, width: bounds.width) {
-            var x = bounds.minX
-            for index in row.indices {
-                let size = subviews[index].sizeThatFits(.unspecified)
-                let width = min(size.width, bounds.width)
-                subviews[index].place(
-                    at: CGPoint(x: x, y: y + (row.height - size.height) / 2),
-                    proposal: ProposedViewSize(width: width, height: size.height)
-                )
-                x += width + spacing
-            }
-            y += row.height + spacing
-        }
-    }
-
-    private struct Row {
-        var indices: [Int] = []
-        var width: CGFloat = 0
-        var height: CGFloat = 0
-    }
-
-    private func arrange(_ subviews: Subviews, width: CGFloat) -> [Row] {
-        var rows: [Row] = []
-        var row = Row()
-        for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
-            let itemWidth = min(size.width, width)
-            if !row.indices.isEmpty && row.width + spacing + itemWidth > width {
-                rows.append(row)
-                row = Row()
-            }
-            row.width += (row.indices.isEmpty ? 0 : spacing) + itemWidth
-            row.height = max(row.height, size.height)
-            row.indices.append(index)
-        }
-        if !row.indices.isEmpty { rows.append(row) }
-        return rows
     }
 }

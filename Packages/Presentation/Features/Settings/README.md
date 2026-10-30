@@ -10,6 +10,7 @@ Finder, export, import).
 ## Owns
 
 - `SettingsViewModel`, `SettingsActions`, `SettingsView`, `JSONFile`
+- Preferences: `AppTheme`, `TextSize` (stored by the app), `AboutInfo`, `AboutView`
 
 ## Must not
 

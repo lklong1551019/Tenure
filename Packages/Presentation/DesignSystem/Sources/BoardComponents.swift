@@ -41,7 +41,7 @@ public struct Badge: View {
 
     public var body: some View {
         Text(text)
-            .font(.system(size: 12, weight: .semibold))
+            .appFont(12, weight: .semibold)
             .lineLimit(1)
             .padding(.horizontal, 9)
             .padding(.vertical, 3)
@@ -51,7 +51,7 @@ public struct Badge: View {
     }
 }
 
-/// Toggleable capsule for a filter: a dot in the kind's color, filled with ink while on.
+/// Toggleable capsule for a filter: a dot in the kind's color; tinted in that color while on.
 public struct FilterChip: View {
     private let text: String
     private let tint: Tint
@@ -73,13 +73,15 @@ public struct FilterChip: View {
                     .frame(width: 8, height: 8)
                     .accessibilityHidden(true)
                 Text(text)
-                    .font(.system(size: 13, weight: .medium))
+                    .appFont(13, weight: isOn ? .semibold : .medium)
+                    .lineLimit(1)
             }
+            .fixedSize()
             .padding(.horizontal, 12)
-            .frame(height: 28)
-            .foregroundStyle(isOn ? Palette.ground : Palette.secondaryInk)
-            .background(isOn ? Palette.ink : Palette.surface, in: Capsule())
-            .overlay(Capsule().strokeBorder(isOn ? Palette.ink : Palette.borderStrong))
+            .padding(.vertical, 5)
+            .foregroundStyle(isOn ? tint.foreground : Palette.secondaryInk)
+            .background(isOn ? tint.background : Palette.surface, in: Capsule())
+            .overlay(Capsule().strokeBorder(isOn ? tint.foreground.opacity(0.45) : Palette.borderStrong))
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -106,18 +108,18 @@ public struct MetricTile: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
-                .font(.system(size: 12, weight: .medium))
+                .appFont(12, weight: .medium)
                 .foregroundStyle(Palette.secondaryInk)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 if let before, !before.isEmpty {
                     Text(before)
-                        .font(.system(size: 14))
+                        .appFont(14)
                         .strikethrough(color: Palette.mutedInk)
                         .foregroundStyle(Palette.mutedInk)
                         .accessibilityLabel("from \(before)")
                 }
                 Text(after)
-                    .font(.system(size: 19, weight: .bold))
+                    .appFont(19, weight: .bold)
                     .foregroundStyle(Palette.ink)
                     .accessibilityLabel("to \(after)")
             }
@@ -126,7 +128,7 @@ public struct MetricTile: View {
             }
             if let note, !note.isEmpty {
                 Text(note)
-                    .font(.system(size: 12))
+                    .appFont(12)
                     .foregroundStyle(Palette.mutedInk)
                     .lineLimit(3)
             }
@@ -150,7 +152,7 @@ public struct ChangePill: View {
 
     public var body: some View {
         Text(text)
-            .font(.system(size: 12, weight: .semibold))
+            .appFont(12, weight: .semibold)
             .monospacedDigit()
             .foregroundStyle(Palette.success)
             .padding(.horizontal, 8)
@@ -170,7 +172,7 @@ public struct Toast: View {
 
     public var body: some View {
         Label(message, systemImage: "checkmark")
-            .font(.system(size: 13))
+            .appFont(13)
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
