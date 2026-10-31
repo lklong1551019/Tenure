@@ -5,6 +5,7 @@ import { SignIn } from '../ui/shell/SignIn'
 import { signInFailureText, syncFailureText } from '../ui/shell/messages'
 import type { AppModel, AppState } from './appModel'
 import { BoardScreen } from './BoardScreen'
+import { usePreference } from './usePreference'
 import { useAppState } from './useAppState'
 import '../ui/components/components.css'
 import '../ui/shell/shell.css'
@@ -12,6 +13,8 @@ import '../ui/shell/shell.css'
 export function App({ model }: { model: AppModel }) {
   const state = useAppState(model)
   const [menuOpen, setMenuOpen] = useState(false)
+  // Wide screens only; on a phone the boards open over the page from the menu button.
+  const [sidebar, setSidebar] = usePreference('sidebar', 'shown', ['shown', 'hidden'] as const)
 
   useEffect(() => model.start(), [model])
 
@@ -40,7 +43,13 @@ export function App({ model }: { model: AppModel }) {
   }
 
   const screen = (
-    <BoardScreen model={model} state={state} menuOpen={menuOpen} onMenu={setMenuOpen} />
+    <BoardScreen
+      model={model}
+      state={state}
+      menuOpen={menuOpen}
+      onMenu={setMenuOpen}
+      sidebarHidden={sidebar === 'hidden'}
+    />
   )
   return (
     <div className="shell">
@@ -52,6 +61,15 @@ export function App({ model }: { model: AppModel }) {
           onClick={() => setMenuOpen(!menuOpen)}
         >
           <Icon name={menuOpen ? 'close' : 'menu'} label="Boards" />
+        </button>
+        <button
+          type="button"
+          className="button button-quiet button-icon only-wide"
+          aria-expanded={sidebar === 'shown'}
+          title={sidebar === 'shown' ? 'Hide boards' : 'Show boards'}
+          onClick={() => setSidebar(sidebar === 'shown' ? 'hidden' : 'shown')}
+        >
+          <Icon name="sidebar" label={sidebar === 'shown' ? 'Hide boards' : 'Show boards'} />
         </button>
         <span className="topbar-title">
           <span className="app-mark" aria-hidden="true">
