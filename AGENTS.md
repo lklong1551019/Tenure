@@ -56,6 +56,7 @@ pre-commit hook.
 | `App/Sources` | Composition root (`AppDependencies`), `AppModel`, scenes |
 | `Config/` | `Base.xcconfig` (tracked); `Local.xcconfig` and `Secrets.xcconfig` (ignored) |
 | `site/` | Home page and privacy policy for the Google OAuth consent screen, release history (GitHub Pages) |
+| `.github/` | Pages workflow (actions pinned to commits) and Dependabot for those actions |
 | `docs/` | Architecture, Google setup, releasing |
 | `scripts/` | Dependency check, verify, git hooks, install, release, app icon renderer |
 

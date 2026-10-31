@@ -56,4 +56,12 @@ struct ModelTests {
         #expect(snapshot.liveBoards.map(\.name) == ["Kept"])
         #expect(snapshot.liveEntries.map(\.name) == ["b"])
     }
+
+    @Test func outOfRangeYearsReadAsInvalid() {
+        #expect(DayDate(string: "20250-01-01") == nil)
+        #expect(DayDate(string: "0-01-01") == nil)
+        #expect(YearMonth(string: "99999-12") == nil)
+        #expect(DayDate(year: 1_000_000, month: 1, day: 1).year == 9999)
+        #expect(DayDate(string: "2026-03-12")?.year == 2026)
+    }
 }

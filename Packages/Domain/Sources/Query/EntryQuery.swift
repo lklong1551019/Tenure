@@ -7,19 +7,28 @@ public enum EntrySort: String, Sendable, CaseIterable, Codable {
     case nameDescending
 }
 
-/// What the board shows: which board, which kinds, a text filter, and an order. Pure, so the
-/// view model only holds the settings.
+/// What the board shows: which board, which kinds, which year, a text filter, and an order.
+/// Pure, so the view model only holds the settings.
 public struct EntryQuery: Sendable, Hashable {
     /// Nil shows every board.
     public var boardId: UUID?
     /// Empty shows every kind, including kinds this build does not know.
     public var types: Set<EntryType>
+    /// Nil shows every year. A task counts in each year from its date to its end date.
+    public var year: Int?
     public var text: String
     public var sort: EntrySort
 
-    public init(boardId: UUID? = nil, types: Set<EntryType> = [], text: String = "", sort: EntrySort = .newest) {
+    public init(
+        boardId: UUID? = nil,
+        types: Set<EntryType> = [],
+        year: Int? = nil,
+        text: String = "",
+        sort: EntrySort = .newest
+    ) {
         self.boardId = boardId
         self.types = types
+        self.year = year
         self.text = text
         self.sort = sort
     }
@@ -31,6 +40,7 @@ public struct EntryQuery: Sendable, Hashable {
             .filter { entry in
                 (boardId == nil || entry.boardId == boardId)
                     && (types.isEmpty || types.contains(entry.type))
+                    && (year.map(entry.touches) ?? true)
                     && EntrySearch.matches(terms: terms, entry)
             }
             .sorted(by: order)

@@ -86,9 +86,7 @@ public enum MarkdownExport {
 
     /// Years with at least one task, newest first.
     public static func years(of entries: [Entry]) -> [Int] {
-        let years = entries.filter { !$0.isDeleted }.flatMap { entry in
-            Array(entry.date.year...max(entry.date.year, entry.endDate?.year ?? entry.date.year))
-        }
+        let years = entries.filter { !$0.isDeleted }.flatMap(\.years)
         return Set(years).sorted(by: >)
     }
 

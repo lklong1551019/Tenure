@@ -80,9 +80,10 @@ public actor LedgerStore {
         return true
     }
 
-    /// Yields the current snapshot first, then every change.
+    /// Yields the current snapshot first, then every change. Only the newest waits for a slow
+    /// reader: each snapshot replaces the last, so older ones are never worth queuing.
     public func changes() -> AsyncStream<LedgerSnapshot> {
-        let (stream, continuation) = AsyncStream<LedgerSnapshot>.makeStream()
+        let (stream, continuation) = AsyncStream<LedgerSnapshot>.makeStream(bufferingPolicy: .bufferingNewest(1))
         let id = UUID()
         observers[id] = continuation
         continuation.yield(current)

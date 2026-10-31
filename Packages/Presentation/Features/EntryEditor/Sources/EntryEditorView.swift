@@ -183,6 +183,7 @@ private struct StoryField: View {
                 }
                 .opacity(isFocused ? 1 : 0)
                 .disabled(!isFocused)
+                .accessibilityHidden(!isFocused)
             }
             ZStack(alignment: .topLeading) {
                 if text.isEmpty {

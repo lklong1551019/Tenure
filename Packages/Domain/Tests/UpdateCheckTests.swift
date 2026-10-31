@@ -42,4 +42,11 @@ struct UpdateCheckTests {
         #expect(releases[1].new == ["Boards"])
         #expect(releases[1].date == "2026-10-30")
     }
+
+    @Test func dropsMalformedVersionsAndOversizedFeeds() throws {
+        let json = #"{"releases": [{"version": "26.11.01"}, {"version": "<script>"}, {"version": "1.2.3.4.5"}]}"#
+        #expect(try UpdateCheck.decode(Data(json.utf8)).map(\.version) == ["26.11.01"])
+        let huge = Data(repeating: 0x20, count: UpdateCheck.maximumFeedBytes + 1)
+        #expect(throws: (any Error).self) { try UpdateCheck.decode(huge) }
+    }
 }

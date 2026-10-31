@@ -21,18 +21,23 @@ public enum UpdateState: Equatable, Sendable {
 }
 
 /// Checks the published changelog for versions newer than this build: on request (Tenure >
-/// Check for Updates, Settings > About), and in the background every 12 hours. A background
-/// check opens the window only for a version it has not announced before.
+/// Check for Updates, Settings > About), and in the background every 12 hours, or an hour after
+/// a failed attempt. A background check asks for the window until the window has shown that
+/// version once.
 @MainActor
 @Observable
 public final class UpdateViewModel {
-    public static let interval: TimeInterval = 12 * 60 * 60
+    static let interval: TimeInterval = 12 * 60 * 60
+    /// After a failed background check (offline, GitHub down), try again this much later.
+    static let retryInterval: TimeInterval = 60 * 60
     /// Wait after launch before the first background check, so it never slows startup.
     static let launchDelay: TimeInterval = 30
     public static let installCommand = "git pull && scripts/install-app.sh"
 
     static let automaticKey = "checksForUpdates"
+    /// When the last background attempt ran, and whether it failed.
     static let lastCheckKey = "lastUpdateCheck"
+    static let lastCheckFailedKey = "lastUpdateCheckFailed"
     static let announcedKey = "announcedVersion"
 
     public let currentVersion: String
@@ -59,26 +64,49 @@ public final class UpdateViewModel {
         return nil
     }
 
-    /// From the menu or the button: always shows the outcome.
+    /// From the menu or the button: always shows the outcome. A check already running is not
+    /// started twice (the menu item and the window's first appearance can both ask).
     public func check() async {
+        guard state != .checking else { return }
         state = .checking
-        await run()
+        do {
+            state = outcome(of: try await actions.fetchReleases())
+        } catch {
+            state = .failed("Couldn't reach GitHub. Check the connection and try again.")
+        }
     }
 
-    /// From the 12-hour timer: quiet unless there is a version not announced before.
+    /// From the timer: quiet unless there is a version the window has not shown yet. A failure
+    /// keeps whatever the window showed before.
     public func checkInBackground(now: Date = Date()) async {
         guard checksAutomatically, state != .checking else { return }
-        await run(now: now)
-        guard let latest, latest.version != defaults.string(forKey: Self.announcedKey) else { return }
-        defaults.set(latest.version, forKey: Self.announcedKey)
-        windowRequests += 1
+        defaults.set(now, forKey: Self.lastCheckKey)
+        do {
+            state = outcome(of: try await actions.fetchReleases())
+            defaults.set(false, forKey: Self.lastCheckFailedKey)
+        } catch {
+            defaults.set(true, forKey: Self.lastCheckFailedKey)
+            return
+        }
+        if let latest, latest.version != defaults.string(forKey: Self.announcedKey) {
+            windowRequests += 1
+        }
     }
 
-    /// Seconds until the next background check is due: the rest of the 12 hours since the
-    /// last one, but never sooner than the launch delay.
+    /// Called when the window shows: its newest version now counts as announced.
+    public func markAnnounced() {
+        guard let latest else { return }
+        defaults.set(latest.version, forKey: Self.announcedKey)
+    }
+
+    /// Seconds until the next background check: 12 hours after the last attempt, an hour after
+    /// a failed one, a full interval while automatic checks are off, and never sooner than the
+    /// launch delay.
     public func secondsUntilNextCheck(now: Date = Date()) -> TimeInterval {
+        guard checksAutomatically else { return Self.interval }
         let last = defaults.object(forKey: Self.lastCheckKey) as? Date ?? .distantPast
-        return max(Self.interval - now.timeIntervalSince(last), Self.launchDelay)
+        let wait = defaults.bool(forKey: Self.lastCheckFailedKey) ? Self.retryInterval : Self.interval
+        return max(wait - now.timeIntervalSince(last), Self.launchDelay)
     }
 
     public func openReleasePage() {
@@ -89,14 +117,8 @@ public final class UpdateViewModel {
         actions.copyText(Self.installCommand)
     }
 
-    private func run(now: Date = Date()) async {
-        do {
-            let releases = try await actions.fetchReleases()
-            defaults.set(now, forKey: Self.lastCheckKey)
-            let newer = UpdateCheck.newer(than: currentVersion, in: releases)
-            state = newer.isEmpty ? .upToDate : .available(newer)
-        } catch {
-            state = .failed("Couldn't reach GitHub. Check the connection and try again.")
-        }
+    private func outcome(of releases: [Release]) -> UpdateState {
+        let newer = UpdateCheck.newer(than: currentVersion, in: releases)
+        return newer.isEmpty ? .upToDate : .available(newer)
     }
 }

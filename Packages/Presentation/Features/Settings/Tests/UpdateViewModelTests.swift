@@ -53,16 +53,31 @@ struct UpdateViewModelTests {
         if case .failed = model.state {} else { Issue.record("expected a failure, got \(model.state)") }
     }
 
-    @Test func backgroundCheckAnnouncesEachVersionOnce() async {
+    @Test func backgroundCheckAsksForTheWindowUntilItShowsTheVersion() async {
         let model = model()
         actions.releases = [Release(version: "26.11.01")]
         await model.checkInBackground()
         #expect(model.windowRequests == 1)
-        await model.checkInBackground()
-        #expect(model.windowRequests == 1)
-        actions.releases.append(Release(version: "26.11.02"))
+        // The window did not show (no main window open): ask again next time.
         await model.checkInBackground()
         #expect(model.windowRequests == 2)
+        model.markAnnounced()
+        await model.checkInBackground()
+        #expect(model.windowRequests == 2)
+        actions.releases.append(Release(version: "26.11.02"))
+        await model.checkInBackground()
+        #expect(model.windowRequests == 3)
+    }
+
+    @Test func failedBackgroundCheckKeepsTheStateAndRetriesInAnHour() async {
+        let model = model()
+        actions.releases = [Release(version: "26.11.01")]
+        await model.check()
+        actions.fails = true
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        await model.checkInBackground(now: now)
+        #expect(model.latest?.version == "26.11.01")
+        #expect(model.secondsUntilNextCheck(now: now) == UpdateViewModel.retryInterval)
     }
 
     @Test func backgroundCheckRespectsTheSetting() async {
@@ -72,6 +87,7 @@ struct UpdateViewModelTests {
         await model.checkInBackground()
         #expect(actions.fetches == 0)
         #expect(UpdateViewModel(currentVersion: "1", actions: actions, defaults: defaults).checksAutomatically == false)
+        #expect(model.secondsUntilNextCheck() == UpdateViewModel.interval)
     }
 
     @Test func nextCheckWaitsOutTwelveHours() async {

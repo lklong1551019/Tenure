@@ -7,6 +7,8 @@ struct EntryCard: View {
     let entry: Entry
     let boardName: String?
     let isSelected: Bool
+    /// The year the board is filtered to, if any: a task that began earlier says so.
+    var filterYear: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -35,6 +37,9 @@ struct EntryCard: View {
                     .foregroundStyle(Palette.mutedInk)
             }
             Spacer(minLength: 0)
+            if let filterYear, entry.date.year < filterYear {
+                Badge("Started in \(String(entry.date.year))", tint: .amber)
+            }
             if let metric = entry.metrics.first {
                 HStack(spacing: 6) {
                     Text(metric.label).foregroundStyle(Palette.secondaryInk)
@@ -97,6 +102,8 @@ struct EntryDetailView: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onOpenLink: () -> Void
+    /// A link clicked inside the story; goes through the same check as the task's link.
+    let onOpenURL: (URL) -> Void
     let onCopy: () -> Void
 
     var body: some View {
@@ -127,6 +134,13 @@ struct EntryDetailView: View {
             // Without this the column shrinks to its content when the story is short.
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .environment(
+            \.openURL,
+            OpenURLAction { url in
+                onOpenURL(url)
+                return .handled
+            }
+        )
         .background(Palette.surface)
         .toolbar {
             ToolbarItemGroup {

@@ -43,4 +43,18 @@ struct EntryQueryTests {
         let ranked = EntrySearch.search("c", in: entries).map(\.name)
         #expect(ranked.prefix(2) == ["Cold start", "Crash on rotate"])
     }
+
+    @Test func yearKeepsTasksDatedInItIncludingSpans() {
+        var spanning = Entry.sample("Migration", on: a, date: DayDate(year: 2025, month: 12, day: 1))
+        spanning.endDate = DayDate(year: 2026, month: 2, day: 1)
+        let all = entries + [spanning]
+        #expect(EntryQuery(year: 2026, sort: .nameAscending).apply(to: all).map(\.name) == ["Cold start", "Migration"])
+        #expect(
+            EntryQuery(year: 2025, sort: .nameAscending).apply(to: all).map(\.name) == [
+                "Crash on rotate", "Migration", "Onboarding",
+            ]
+        )
+        #expect(EntryQuery(boardId: b.id, year: 2026).apply(to: all).isEmpty)
+        #expect(EntryQuery(year: 2019).apply(to: all).isEmpty)
+    }
 }
