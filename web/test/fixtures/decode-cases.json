@@ -1,0 +1,102 @@
+[
+  {
+    "error" : "corruptFile",
+    "input" : "nope",
+    "name" : "not json"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "[]",
+    "name" : "top-level array"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"other\", \"version\": 1, \"boards\": [], \"entries\": []}",
+    "name" : "wrong format"
+  },
+  {
+    "error" : "unsupportedFormatVersion:2",
+    "input" : "{\"format\": \"tenure\", \"version\": 2, \"boards\": [], \"entries\": []}",
+    "name" : "newer version"
+  },
+  {
+    "error" : "unsupportedFormatVersion:3",
+    "input" : "{\"format\": \"tenure\", \"version\": 3}",
+    "name" : "newer version, unreadable body"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": \"1\", \"boards\": [], \"entries\": []}",
+    "name" : "version as text"
+  },
+  {
+    "input" : "{\"format\": \"tenure\", \"version\": 0, \"boards\": [], \"entries\": []}",
+    "name" : "version zero"
+  },
+  {
+    "input" : "{\"format\": \"tenure\", \"version\": 1.0, \"boards\": [], \"entries\": []}",
+    "name" : "version float"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"boards\": []}",
+    "name" : "missing entries"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"boards\": null, \"entries\": []}",
+    "name" : "boards null"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": 1}, {\"id\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": 2}]}",
+    "name" : "duplicate board ids"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [{\"id\": \"00000000-0000-4000-8000-00000000000a\", \"updatedAt\": 1}, {\"id\": \"00000000-0000-4000-8000-00000000000A\", \"updatedAt\": 2}]}",
+    "name" : "duplicate ids differing in case"
+  },
+  {
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"boards\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": 1, \"start\": \"2020-01\"}], \"entries\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"boardId\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": 1, \"date\": \"2020-01-01\"}]}",
+    "name" : "same id as board and entry"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [{\"id\": \"00000000-0000-4000-8000-000000000001\"}]}",
+    "name" : "board without updatedAt"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [{\"id\": \"x\", \"updatedAt\": 1}]}",
+    "name" : "board with a bad id"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"boards\": [], \"entries\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": 1, \"date\": \"2020-01-01\"}]}",
+    "name" : "entry without boardId"
+  },
+  {
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"boards\": [], \"entries\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"boardId\": \"00000000-0000-4000-8000-000000000009\", \"updatedAt\": 1, \"date\": \"2020-01-01\"}]}",
+    "name" : "entry on a missing board"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": 1.5}]}",
+    "name" : "updatedAt with a fraction"
+  },
+  {
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": 1.0, \"start\": \"2020-01\"}]}",
+    "name" : "updatedAt written as 1.0"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [{\"id\": \"00000000-0000-4000-8000-000000000001\", \"updatedAt\": \"1\"}]}",
+    "name" : "updatedAt as text"
+  },
+  {
+    "error" : "corruptFile",
+    "input" : "{\"format\": \"tenure\", \"version\": 1, \"entries\": [], \"boards\": [1]}",
+    "name" : "board as a number"
+  }
+]

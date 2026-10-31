@@ -120,7 +120,7 @@ let html = """
     </style>
     </head>
     <body>
-    <nav><a href="./">Tenure</a> <a href="releases.html">Releases</a> <a href="privacy.html">Privacy</a></nav>
+    <nav><a href="./">Tenure</a> <a href="app/">Web app</a> <a href="releases.html">Releases</a> <a href="privacy.html">Privacy</a></nav>
     <h1>Releases</h1>
     \(body)
     </body>

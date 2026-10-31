@@ -45,3 +45,8 @@ tenure.json
 # Agent local state
 HANDOFF.md
 .claude/settings.local.json
+
+# Web app (web/): dependencies and build output. site/app is filled by the Pages workflow.
+web/node_modules/
+web/dist/
+site/app/

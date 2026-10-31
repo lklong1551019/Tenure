@@ -1,0 +1,87 @@
+/* The board and task editors. */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dialog:has(.editor-wide) {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.editor-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.editor-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-row > .editor-field {
+  flex: 1 1 200px;
+}
+
+.editor-problem {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.editor-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.editor-metrics legend {
+  margin-bottom: 8px;
+}
+
+.editor-metric {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.8fr auto;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-metric-note {
+  grid-column: 1 / 5;
+}
+
+.editor-actions {
+  position: sticky;
+  bottom: -20px;
+  margin: 0 -20px -20px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 560px) {
+  .editor-metric {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .editor-metric > :first-child,
+  .editor-metric-note {
+    grid-column: 1 / 3;
+  }
+}
