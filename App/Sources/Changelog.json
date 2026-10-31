@@ -1,6 +1,20 @@
 {
   "releases" : [
     {
+      "code" : "26110105",
+      "date" : "2026-10-31",
+      "fixed" : [
+        "Scroll the task list, and add a button to hide the boards column"
+      ],
+      "improved" : [
+
+      ],
+      "new" : [
+
+      ],
+      "version" : "26.11.01"
+    },
+    {
       "code" : "26110103",
       "date" : "2026-10-31",
       "fixed" : [
