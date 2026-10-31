@@ -15,10 +15,7 @@ export function SignIn(props: {
           T
         </div>
         <h1>Tenure</h1>
-        <p>
-          Your boards and tasks, from the same <code>tenure.json</code> the Mac app keeps in your
-          Google Drive. Nothing is stored in this browser.
-        </p>
+        <p>Your boards and tasks</p>
         {props.namespace === 'demo' && (
           <p className="sign-in-note">Demo: sample data, no Google account.</p>
         )}

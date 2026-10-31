@@ -35,6 +35,11 @@ final class FakeBoardActions: BoardActions {
     }
 
     var copied: [String] = []
+    var imported: [Entry] = []
+
+    func importEntries(_ entries: [Entry]) async throws {
+        imported += entries
+    }
 
     func copyText(_ text: String) {
         copied.append(text)
@@ -232,5 +237,23 @@ struct BoardViewModelTests {
         let text = StoryText.attributed("[web](https://example.com) [app](zoommtg://join) [file](file:///etc)")
         let links = text.runs.compactMap(\.link).map(\.absoluteString)
         #expect(links == ["https://example.com"])
+    }
+
+    @Test func importsReadyRowsOntoTheChosenBoard() async throws {
+        let model = model()
+        model.selection = .board(b.id)
+        model.beginImport()
+        var draft = try #require(model.importDraft)
+        #expect(draft.boardId == b.id)
+        draft.text = "Crash fix\thttps://example.com/1\t2025-11-02\nNew task\t\t2025-12-01\nNo date\t\t\n"
+        let rows = model.importRows(draft)
+        #expect(rows.map(\.status) == [.duplicate, .ready, .missingDate])
+        draft.boardId = a.id
+        await model.importTasks(draft)
+        #expect(actions.imported.map(\.name) == ["Crash fix", "New task"])
+        #expect(actions.imported.allSatisfy { $0.boardId == a.id && $0.type == .dev })
+        #expect(model.importDraft == nil)
+        #expect(model.selection == .board(a.id))
+        #expect(model.toast == "Imported 2 tasks")
     }
 }

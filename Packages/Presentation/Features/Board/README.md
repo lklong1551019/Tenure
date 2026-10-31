@@ -21,6 +21,8 @@ The main window: board sidebar, tasks as a grid or a table beside the selected t
   `StorySection` (each story part's symbol and tint)
 - `ShortcutsView` (Help > Keyboard Shortcuts, Cmd-/) and the sidebar `ShortcutHint`
 - Export: `YearExportDraft`, `ExportFile`, `YearExportView`, `MarkdownDocument` (save panel)
+- Import: `ImportDraft`, `ImportTasksView` (paste or open a CSV/TSV, pick board and kind,
+  preview every row, import the ready ones in one write; File > Import Tasks, Shift-Cmd-I)
 
 ## Must not
 
@@ -32,7 +34,7 @@ Domain, DesignSystem
 
 ## Tests
 
-`BoardFeatureTests` (12 tests): board order and filtering, reveal across boards and filters,
+`BoardFeatureTests` (13 tests): board order and filtering, reveal across boards and filters,
 selection fallback, board draft validation and save, failed save, new task target, board and
-year export, copying a task, the summary line, HTML tags read as Markdown, the year filter (per-board counts, summary, reset), and story links limited to http and
-https.
+year export, copying a task, the summary line, HTML tags read as Markdown, the year filter (per-board counts, summary, reset), story links limited to http and
+https, and importing ready rows onto the chosen board.

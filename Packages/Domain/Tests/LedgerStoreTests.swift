@@ -72,4 +72,18 @@ struct LedgerStoreTests {
         try await store.save(Board.sample())
         #expect(await iterator.next()?.boards.count == 1)
     }
+
+    @Test func savesManyEntriesInOneWrite() async throws {
+        let store = try LedgerStore(repository: repository, clock: clock)
+        let board = try await store.save(Board.sample())
+        let writes = repository.saveCount
+        let entries = (1...3).map { Entry.sample("Task \($0)", on: board) }
+        let saved = try await store.save(entries)
+        #expect(repository.saveCount == writes + 1)
+        #expect(repository.snapshot?.entries.count == 3)
+        #expect(Set(saved.map(\.updatedAt)).count == 3)
+        await #expect(throws: LedgerError.notFound) {
+            try await store.save([Entry.sample("Lost", on: Board.sample("Gone"))])
+        }
+    }
 }

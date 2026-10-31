@@ -61,6 +61,31 @@ public actor LedgerStore {
         return stamped
     }
 
+    /// Adds or updates several entries in one write, as an import does: all or nothing.
+    /// Throws `notFound` if any is on a board that is missing or deleted.
+    @discardableResult
+    public func save(_ entries: [Entry]) throws -> [Entry] {
+        let liveBoards = Set(current.boards.filter { !$0.isDeleted }.map(\.id))
+        guard entries.allSatisfy({ liveBoards.contains($0.boardId) }) else { throw LedgerError.notFound }
+        guard !entries.isEmpty else { return [] }
+        var next = current
+        var previous: Timestamp?
+        let stamped = entries.map { entry in
+            var stamped = entry
+            // Each after the last, so the import keeps its order in time.
+            let existing = current.entries.first { $0.id == entry.id }?.updatedAt
+            stamped.updatedAt = stamp(after: [previous, existing].compactMap { $0 }.max())
+            stamped.deletedAt = nil
+            previous = stamped.updatedAt
+            return stamped
+        }
+        for entry in stamped {
+            upsert(entry, into: &next.entries)
+        }
+        try commit(next)
+        return stamped
+    }
+
     public func deleteEntry(_ id: UUID) throws {
         guard let entry = current.entries.first(where: { $0.id == id && !$0.isDeleted }) else {
             throw LedgerError.notFound

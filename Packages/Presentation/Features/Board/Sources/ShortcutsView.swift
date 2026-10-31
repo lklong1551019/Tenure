@@ -15,6 +15,7 @@ struct ShortcutsView: View {
                 Shortcut(keys: "⌘N", action: "New task"),
                 Shortcut(keys: "⇧⌘N", action: "New board"),
                 Shortcut(keys: "Double-click", action: "Edit a task"),
+                Shortcut(keys: "⇧⌘I", action: "Import tasks pasted from a spreadsheet"),
                 Shortcut(keys: "⇧⌘E", action: "Export the board as Markdown"),
                 Shortcut(keys: "⇧⌘C", action: "Copy the selected task as Markdown"),
             ]

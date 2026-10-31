@@ -60,6 +60,16 @@ public struct BoardView: View {
         .sheet(isPresented: $model.showsShortcuts) {
             ShortcutsView { model.showsShortcuts = false }
         }
+        .sheet(item: $model.importDraft) { draft in
+            ImportTasksView(
+                draft: draft,
+                boards: model.boards,
+                kinds: model.availableTypes,
+                review: model.importRows,
+                onImport: { edited in Task { await model.importTasks(edited) } },
+                onCancel: { model.importDraft = nil }
+            )
+        }
         .sheet(item: $model.yearExport) { draft in
             YearExportView(
                 draft: draft,
@@ -155,6 +165,10 @@ public struct BoardView: View {
                         .tag(BoardSelection.board(board.id))
                         .contextMenu {
                             Button("Edit board...") { model.editBoard(board) }
+                            Button("Import tasks...") {
+                                model.selection = .board(board.id)
+                                model.beginImport()
+                            }
                             Button("Export as Markdown...") {
                                 model.selection = .board(board.id)
                                 model.exportCurrent()

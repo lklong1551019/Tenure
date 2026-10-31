@@ -7,12 +7,15 @@ final class InMemoryRepository: LedgerRepository, @unchecked Sendable {
     private let lock = NSLock()
     private var stored: LedgerSnapshot?
     private var failSaves = false
+    private var saves = 0
 
     init(_ snapshot: LedgerSnapshot? = nil) {
         stored = snapshot
     }
 
     var snapshot: LedgerSnapshot? { lock.withLock { stored } }
+    /// How many times the store wrote the file.
+    var saveCount: Int { lock.withLock { saves } }
 
     func failNextSaves(_ fail: Bool) {
         lock.withLock { failSaves = fail }
@@ -24,6 +27,7 @@ final class InMemoryRepository: LedgerRepository, @unchecked Sendable {
         try lock.withLock {
             if failSaves { throw LedgerError.saveFailed }
             stored = snapshot
+            saves += 1
         }
     }
 }
