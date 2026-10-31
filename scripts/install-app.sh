@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# Builds the Release app, checks it, and installs it for daily use. Version and version code
-# come from the latest release tag (scripts/release.sh).
+# Builds the Release app, checks it, and installs it for daily use. The version comes from the
+# latest release tag (scripts/release.sh tags the build code, 26110103; older tags v26.11.01); the
+# build code YYMMNNBB is odd for Release builds (even codes are Debug builds from Xcode): the
+# tag's build on the tagged commit, then 2 more per commit after it, so each commit has its
+# own code and the same commit always gets the same one.
 #
 #   scripts/install-app.sh               verify, build, install to /Applications, launch
 #   scripts/install-app.sh --skip-verify skip scripts/verify.sh
 #   scripts/install-app.sh --build-only  build and check, install nothing
 #   scripts/install-app.sh --dest DIR    install into DIR instead of /Applications
+#   scripts/install-app.sh --build 03    this build number (odd, 01-99) instead of the default
 #
 # Release keeps the base bundle id, so the installed app opens the same data file, Keychain items,
 # and Google client as the previous install. The data file lives in the app's sandbox container,
@@ -20,11 +24,13 @@ cd "$root"
 skip_verify=0
 build_only=0
 dest=/Applications
+build=""
 while [ $# -gt 0 ]; do
   case $1 in
     --skip-verify) skip_verify=1 ;;
     --build-only) build_only=1 ;;
     --dest) dest=${2:?--dest needs a directory}; shift ;;
+    --build) build=${2:?--build needs an odd number such as 03}; shift ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
   shift
@@ -47,16 +53,41 @@ fi
 derived="$root/.build/release"
 mkdir -p "$derived"
 log="$derived/build.log"
-# Version code YYMMNNBB: the release tag gives YYMMNN; BB is 01 on the tag itself and counts
-# the commits after it. Without a tag yet, Config/Base.xcconfig decides.
+# Version code YYMMNNBB: the release tag gives YYMMNN and its build (the tag is the code, or the
+# older vYY.MM.NN and vYY.MM.NN-bBB);
+# BB stays odd (a Release build): the tag's build plus 2 per commit after it, or --build.
+# Without a tag yet, Config/Base.xcconfig decides.
+if [ -n "$build" ]; then
+  printf '%s' "$build" | grep -Eq '^[0-9]{1,2}$' && [ $((10#$build % 2)) -eq 1 ] \
+    || fail "--build $build: Release builds are odd, 01 to 99 (even codes are Debug builds)"
+  build=$(printf '%02d' $((10#$build)))
+fi
 build_settings=()
-if tag=$(git describe --tags --match 'v[0-9][0-9].[0-9][0-9].[0-9][0-9]' --abbrev=0 2>/dev/null); then
+if tag=$(git describe --tags --abbrev=0 --match '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' \
+  --match 'v[0-9][0-9].[0-9][0-9].[0-9][0-9]*' 2>/dev/null); then
   since=$(git rev-list --count "$tag..HEAD")
-  [ "$since" -lt 99 ] || fail "$since commits since $tag; cut a release with scripts/release.sh"
-  version=${tag#v}
-  code="$(printf '%s' "$version" | tr -d '.')$(printf '%02d' $((since + 1)))"
+  case $tag in
+    v*)
+      version=${tag#v}
+      tag_build=01
+      case $version in *-b*) tag_build=${version##*-b}; version=${version%-b*} ;; esac
+      ;;
+    *)
+      version="${tag:0:2}.${tag:2:2}.${tag:4:2}"
+      tag_build=${tag:6:2}
+      ;;
+  esac
+  if [ -z "$build" ]; then
+    next=$((10#$tag_build + 2 * since))
+    [ "$next" -le 99 ] || fail "$since commits since $tag; cut a release with scripts/release.sh, or pass --build"
+    build=$(printf '%02d' "$next")
+  fi
+  code="$(printf '%s' "$version" | tr -d '.')$build"
   build_settings=(MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$code")
   [ "$since" -eq 0 ] || echo "note  $since commits after $tag: building $version as build $code"
+elif [ -n "$build" ]; then
+  version=$(sed -nE 's/^MARKETING_VERSION = (.*)/\1/p' Config/Base.xcconfig)
+  build_settings=(CURRENT_PROJECT_VERSION="$(printf '%s' "$version" | tr -d '.')$build")
 else
   echo "note  no release tag yet: version from Config/Base.xcconfig (scripts/release.sh tags one)"
 fi

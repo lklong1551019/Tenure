@@ -109,8 +109,11 @@ to `App/Sources/Changelog.json` (reword them there when it pauses), renders
 tags `v<version>`. Answering y to its push question pushes `main` and the tag, which deploys
 the release page at https://lklong1551019.github.io/Tenure/releases.html. `--dry-run` prints
 the version and notes and changes nothing; `--version YY.MM.NN` picks the version instead of
-the calendar. Commit subjects read `feat: add markdown export`
-(optionally `feat(scope): ...`); other types stay out of the notes. Step by step, with what
+the calendar; `--build 03` releases a later build of the last version. Tags are build codes
+(`26110103`; the first release is `v26.11.01`), and the page shows "26.11.01 - 26110103".
+Build codes `YYMMNNBB` are odd for Release and even for Debug, so a code says which kind of
+build it is; Software Update and the release page compare codes, not version strings. Commit subjects read
+`feat: add markdown export` (optionally `feat(scope): ...`); other types stay out of the notes. Step by step, with what
 to do when it fails: [docs/RELEASE.md](docs/RELEASE.md).
 
 ## Conventions

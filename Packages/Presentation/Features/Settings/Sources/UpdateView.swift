@@ -140,7 +140,7 @@ public struct UpdateView: View {
         switch model.state {
         case .idle, .checking: "Checking for updates..."
         case .upToDate: "Tenure is up to date"
-        case .available(let releases): "Tenure \(releases.first?.version ?? "") is available"
+        case .available(let releases): "Tenure \(releases.first?.title ?? "") is available"
         case .failed: "Couldn't check for updates"
         }
     }
@@ -149,9 +149,9 @@ public struct UpdateView: View {
         switch model.state {
         case .available(let releases):
             let count = releases.count == 1 ? "" : " (\(releases.count) releases)"
-            return "You have \(model.currentVersion)\(count)."
+            return "You have \(model.currentVersion) - \(model.currentCode)\(count)."
         default:
-            return "This Mac runs version \(model.currentVersion)."
+            return "This Mac runs \(model.currentVersion) - \(model.currentCode)."
         }
     }
 }
@@ -163,7 +163,7 @@ private struct ReleaseNotesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(release.version)
+                Text(release.title)
                     .appFont(15, weight: .bold)
                     .foregroundStyle(Palette.ink)
                 Text(release.date)

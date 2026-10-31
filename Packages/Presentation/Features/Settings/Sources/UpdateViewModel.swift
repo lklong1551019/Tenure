@@ -20,7 +20,7 @@ public enum UpdateState: Equatable, Sendable {
     case failed(String)
 }
 
-/// Checks the published changelog for versions newer than this build: on request (Tenure >
+/// Checks the published changelog for builds newer than this one, by build code: on request (Tenure >
 /// Check for Updates, Settings > About), and in the background every 12 hours, or an hour after
 /// a failed attempt. A background check asks for the window until the window has shown that
 /// version once.
@@ -38,9 +38,11 @@ public final class UpdateViewModel {
     /// When the last background attempt ran, and whether it failed.
     static let lastCheckKey = "lastUpdateCheck"
     static let lastCheckFailedKey = "lastUpdateCheckFailed"
-    static let announcedKey = "announcedVersion"
+    static let announcedKey = "announcedBuild"
 
     public let currentVersion: String
+    /// This build's code (CFBundleVersion); releases compare by it.
+    public let currentCode: Int
     public private(set) var state = UpdateState.idle
     /// Bumped when a background check finds something new; the app opens the window on change.
     public private(set) var windowRequests = 0
@@ -51,8 +53,14 @@ public final class UpdateViewModel {
     private let actions: any UpdateActions
     private let defaults: UserDefaults
 
-    public init(currentVersion: String, actions: any UpdateActions, defaults: UserDefaults = .standard) {
+    public init(
+        currentVersion: String,
+        currentCode: String,
+        actions: any UpdateActions,
+        defaults: UserDefaults = .standard
+    ) {
         self.currentVersion = currentVersion
+        self.currentCode = UpdateCheck.code(currentCode)
         self.actions = actions
         self.defaults = defaults
         checksAutomatically = defaults.object(forKey: Self.automaticKey) as? Bool ?? true
@@ -88,7 +96,7 @@ public final class UpdateViewModel {
             defaults.set(true, forKey: Self.lastCheckFailedKey)
             return
         }
-        if let latest, latest.version != defaults.string(forKey: Self.announcedKey) {
+        if let latest, latest.code != defaults.integer(forKey: Self.announcedKey) {
             windowRequests += 1
         }
     }
@@ -96,7 +104,7 @@ public final class UpdateViewModel {
     /// Called when the window shows: its newest version now counts as announced.
     public func markAnnounced() {
         guard let latest else { return }
-        defaults.set(latest.version, forKey: Self.announcedKey)
+        defaults.set(latest.code, forKey: Self.announcedKey)
     }
 
     /// Seconds until the next background check: 12 hours after the last attempt, an hour after
@@ -118,7 +126,7 @@ public final class UpdateViewModel {
     }
 
     private func outcome(of releases: [Release]) -> UpdateState {
-        let newer = UpdateCheck.newer(than: currentVersion, in: releases)
+        let newer = UpdateCheck.newer(than: currentCode, in: releases)
         return newer.isEmpty ? .upToDate : .available(newer)
     }
 }

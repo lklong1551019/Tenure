@@ -1,25 +1,35 @@
 import Foundation
 
-/// One published version and its notes, as `scripts/release.sh` writes them to
-/// `App/Sources/Changelog.json`.
+/// One published build and its notes, as `scripts/release.sh` writes them to
+/// `App/Sources/Changelog.json`. A version can ship more than once: 26.11.01 is build 26110101,
+/// and a later build of it is 26110103.
 public struct Release: Sendable, Hashable, Codable, Identifiable {
     public let version: String
+    /// The build code, YYMMNNBB.
+    public let code: Int
     /// "2026-11-02", as written by the release script.
     public let date: String
     public let new: [String]
     public let fixed: [String]
     public let improved: [String]
 
-    public var id: String { version }
+    public var id: Int { code }
+
+    /// "26.11.01 - 26110103": the version, then the build code that tells builds apart.
+    public var title: String {
+        "\(version) - \(code)"
+    }
 
     public init(
         version: String,
+        code: Int? = nil,
         date: String = "",
         new: [String] = [],
         fixed: [String] = [],
         improved: [String] = []
     ) {
         self.version = version
+        self.code = code ?? UpdateCheck.firstBuild(of: version)
         self.date = date
         self.new = new
         self.fixed = fixed
@@ -27,65 +37,75 @@ public struct Release: Sendable, Hashable, Codable, Identifiable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case version, date, new, fixed, improved
+        case version, code, date, new, fixed, improved
     }
 
     /// Only `version` is required; a field a later script adds or drops never fails the feed.
+    /// A missing or unreadable code reads as the version's first build.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         version = try container.decode(String.self, forKey: .version)
+        code =
+            container.lenient(String.self, forKey: .code).flatMap { Int($0) }
+            ?? container.lenient(Int.self, forKey: .code)
+            ?? UpdateCheck.firstBuild(of: version)
         date = container.lenient(String.self, forKey: .date) ?? ""
         new = container.lenient([String].self, forKey: .new) ?? []
         fixed = container.lenient([String].self, forKey: .fixed) ?? []
         improved = container.lenient([String].self, forKey: .improved) ?? []
     }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(version, forKey: .version)
+        try container.encode(String(code), forKey: .code)
+        try container.encode(date, forKey: .date)
+        try container.encode(new, forKey: .new)
+        try container.encode(fixed, forKey: .fixed)
+        try container.encode(improved, forKey: .improved)
+    }
 }
 
-/// Where the app learns about new versions: the published changelog.
+/// Where the app learns about new builds: the published changelog.
 public protocol ReleaseFeedPort: Sendable {
     func releases() async throws -> [Release]
 }
 
+/// Builds compare by code, not by version: 26.11.01 - 26110103 is newer than
+/// 26.11.01 (26110101) though the version reads the same.
 public enum UpdateCheck {
     /// A larger changelog is refused rather than read: the real one is a few kilobytes.
     public static let maximumFeedBytes = 256 * 1024
     /// At most this many newer releases are shown.
     public static let maximumShown = 20
 
-    /// The releases in a changelog file (`{"releases": [...]}`), newest first. Entries whose
-    /// version is not dotted numbers (`26.11.01`) are dropped: the feed comes from the network.
+    /// The releases in a changelog file (`{"releases": [...]}`), newest build first. Entries
+    /// whose version is not `YY.MM.NN` or whose code is not eight digits are dropped: the feed
+    /// comes from the network.
     public static func decode(_ data: Data) throws -> [Release] {
         guard data.count <= maximumFeedBytes else {
             throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "feed too large"))
         }
         struct Feed: Decodable { let releases: [Release] }
         return try JSONDecoder().decode(Feed.self, from: data).releases
-            .filter { $0.version.wholeMatch(of: /[0-9]{1,4}(\.[0-9]{1,4}){0,3}/) != nil }
-            .sorted { isNewer($0.version, than: $1.version) }
+            .filter { $0.version.wholeMatch(of: /[0-9]{2}\.[0-9]{2}\.[0-9]{2}/) != nil }
+            .filter { (10_000_000...99_999_999).contains($0.code) }
+            .sorted { $0.code > $1.code }
     }
 
-    /// Releases newer than `current`, newest first, at most `maximumShown`. Versions compare
-    /// part by part as numbers, so 26.11.01 is newer than 26.10.12.
-    public static func newer(than current: String, in releases: [Release]) -> [Release] {
-        Array(
-            releases.filter { isNewer($0.version, than: current) }
-                .sorted { isNewer($0.version, than: $1.version) }
-                .prefix(maximumShown)
-        )
+    /// Releases with a higher code than `currentCode` (this build's CFBundleVersion), newest
+    /// first, at most `maximumShown`.
+    public static func newer(than currentCode: Int, in releases: [Release]) -> [Release] {
+        Array(releases.filter { $0.code > currentCode }.sorted { $0.code > $1.code }.prefix(maximumShown))
     }
 
-    public static func isNewer(_ version: String, than other: String) -> Bool {
-        let lhs = parts(version)
-        let rhs = parts(other)
-        for index in 0..<max(lhs.count, rhs.count) {
-            let left = index < lhs.count ? lhs[index] : 0
-            let right = index < rhs.count ? rhs[index] : 0
-            if left != right { return left > right }
-        }
-        return false
+    /// "26110101" as a number; anything else reads as 0, so every release counts as newer.
+    public static func code(_ text: String) -> Int {
+        Int(text.trimmingCharacters(in: .whitespaces)) ?? 0
     }
 
-    private static func parts(_ version: String) -> [Int] {
-        version.split(separator: ".").map { Int($0) ?? 0 }
+    /// The code of a version's first build: 26.11.01 is 26110101.
+    public static func firstBuild(of version: String) -> Int {
+        (Int(version.filter(\.isNumber)) ?? 0) * 100 + 1
     }
 }

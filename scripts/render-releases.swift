@@ -42,9 +42,12 @@ func displayDate(_ iso: String) -> String {
 
 func section(_ release: [String: Any]) -> String {
     let version = escape(release["version"] as? String ?? "")
+    let code = escape(release["code"] as? String ?? "")
     let date = release["date"] as? String ?? ""
     var lines = ["<section>"]
-    var heading = "<h2 id=\"v\(version)\">\(version)"
+    // "26.11.01 - 26110103": the version, then the build code that tells builds apart.
+    let build = code.isEmpty ? "" : " <span class=\"build\">- \(code)</span>"
+    var heading = "<h2 id=\"b\(code.isEmpty ? version : code)\">\(version)\(build)"
     if release["isLatest"] as? Bool == true {
         heading += " <span class=\"latest\">Latest</span>"
     }
@@ -113,6 +116,7 @@ let html = """
       h3 { font-size: 16px; margin: 16px 0 4px; }
       ul { margin: 0; padding-left: 24px; }
       .date { opacity: 0.7; margin: 0; }
+      .build { font-size: 15px; font-weight: 500; opacity: 0.7; }
       .empty { opacity: 0.7; }
       .latest { display: inline-block; vertical-align: middle; margin-left: 8px; padding: 1px 10px;
                 border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1.6;
@@ -135,5 +139,5 @@ do {
     FileHandle.standardError.write(Data("cannot write \(page.path): \(error.localizedDescription)\n".utf8))
     exit(1)
 }
-let newest = (releases.first?["version"] as? String).map { ", newest \($0)" } ?? ""
+let newest = releases.first.map { ", newest \($0["version"] as? String ?? "") (\($0["code"] as? String ?? ""))" } ?? ""
 print("rendered site/releases.html: \(releases.count) release(s)\(newest)")
