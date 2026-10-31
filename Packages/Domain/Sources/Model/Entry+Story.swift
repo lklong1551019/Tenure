@@ -48,10 +48,14 @@ extension Entry {
         return "\(format(date)) - \(format(endDate))"
     }
 
+    /// The years from its date to its end date: one year, or several for a span.
+    public var years: ClosedRange<Int> {
+        date.year...max(date.year, endDate?.year ?? date.year)
+    }
+
     /// Whether any day from its date to its end date falls in `year`.
-    func touches(_ year: Int) -> Bool {
-        let end = max(date.year, endDate?.year ?? date.year)
-        return (date.year...end).contains(year)
+    public func touches(_ year: Int) -> Bool {
+        years.contains(year)
     }
 }
 

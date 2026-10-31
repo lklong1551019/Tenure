@@ -4,7 +4,6 @@ import Foundation
 /// `App/Sources/Changelog.json`.
 public struct Release: Sendable, Hashable, Codable, Identifiable {
     public let version: String
-    public let code: String
     /// "2026-11-02", as written by the release script.
     public let date: String
     public let new: [String]
@@ -15,14 +14,12 @@ public struct Release: Sendable, Hashable, Codable, Identifiable {
 
     public init(
         version: String,
-        code: String = "",
         date: String = "",
         new: [String] = [],
         fixed: [String] = [],
         improved: [String] = []
     ) {
         self.version = version
-        self.code = code
         self.date = date
         self.new = new
         self.fixed = fixed
@@ -30,14 +27,13 @@ public struct Release: Sendable, Hashable, Codable, Identifiable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case version, code, date, new, fixed, improved
+        case version, date, new, fixed, improved
     }
 
     /// Only `version` is required; a field a later script adds or drops never fails the feed.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         version = try container.decode(String.self, forKey: .version)
-        code = container.lenient(String.self, forKey: .code) ?? ""
         date = container.lenient(String.self, forKey: .date) ?? ""
         new = container.lenient([String].self, forKey: .new) ?? []
         fixed = container.lenient([String].self, forKey: .fixed) ?? []
@@ -51,16 +47,31 @@ public protocol ReleaseFeedPort: Sendable {
 }
 
 public enum UpdateCheck {
-    /// The releases in a changelog file (`{"releases": [...]}`), newest first.
+    /// A larger changelog is refused rather than read: the real one is a few kilobytes.
+    public static let maximumFeedBytes = 256 * 1024
+    /// At most this many newer releases are shown.
+    public static let maximumShown = 20
+
+    /// The releases in a changelog file (`{"releases": [...]}`), newest first. Entries whose
+    /// version is not dotted numbers (`26.11.01`) are dropped: the feed comes from the network.
     public static func decode(_ data: Data) throws -> [Release] {
+        guard data.count <= maximumFeedBytes else {
+            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "feed too large"))
+        }
         struct Feed: Decodable { let releases: [Release] }
-        return try JSONDecoder().decode(Feed.self, from: data).releases.sorted { isNewer($0.version, than: $1.version) }
+        return try JSONDecoder().decode(Feed.self, from: data).releases
+            .filter { $0.version.wholeMatch(of: /[0-9]{1,4}(\.[0-9]{1,4}){0,3}/) != nil }
+            .sorted { isNewer($0.version, than: $1.version) }
     }
 
-    /// Releases newer than `current`, newest first. Versions compare part by part as numbers,
-    /// so 26.11.01 is newer than 26.10.12.
+    /// Releases newer than `current`, newest first, at most `maximumShown`. Versions compare
+    /// part by part as numbers, so 26.11.01 is newer than 26.10.12.
     public static func newer(than current: String, in releases: [Release]) -> [Release] {
-        releases.filter { isNewer($0.version, than: current) }.sorted { isNewer($0.version, than: $1.version) }
+        Array(
+            releases.filter { isNewer($0.version, than: current) }
+                .sorted { isNewer($0.version, than: $1.version) }
+                .prefix(maximumShown)
+        )
     }
 
     public static func isNewer(_ version: String, than other: String) -> Bool {

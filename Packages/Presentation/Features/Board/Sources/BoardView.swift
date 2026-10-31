@@ -232,7 +232,7 @@ public struct BoardView: View {
                     action: ("New board", model.newBoard)
                 )
             } else if model.visibleEntries.isEmpty {
-                if model.text.isEmpty && model.types.isEmpty {
+                if !model.hasFilters {
                     emptyState(
                         "Write down what you shipped",
                         "Add a task with the problem, the fix, and the numbers that prove it.",
@@ -328,6 +328,17 @@ public struct BoardView: View {
     private var filterBar: some View {
         HStack(alignment: .top, spacing: 8) {
             FlowRow(spacing: 8) {
+                YearFilterChip(
+                    years: model.years,
+                    total: model.entryCount(of: model.selectedBoard),
+                    year: $model.year
+                )
+                Rectangle()
+                    .fill(Palette.borderStrong)
+                    .frame(width: 1, height: 20)
+                    .padding(.horizontal, 2)
+                    .padding(.vertical, 5)
+                    .accessibilityHidden(true)
                 FilterChip("All kinds", tint: .teal, isOn: model.types.isEmpty) {
                     model.types = []
                 }
@@ -337,7 +348,7 @@ public struct BoardView: View {
                     }
                 }
             }
-            if !model.types.isEmpty || !model.text.isEmpty {
+            if model.hasFilters {
                 Text("\(model.visibleEntries.count) shown")
                     .appFont(12)
                     .foregroundStyle(Palette.mutedInk)
@@ -356,7 +367,8 @@ public struct BoardView: View {
                     EntryCard(
                         entry: entry,
                         boardName: model.selectedBoard == nil ? model.boardName(of: entry) : nil,
-                        isSelected: model.selectedEntryId == entry.id
+                        isSelected: model.selectedEntryId == entry.id,
+                        filterYear: model.year
                     )
                     // Select on the first click; a double-click alongside it opens the editor.
                     // Stacking onTapGesture(count: 2) above onTapGesture would hold every
@@ -511,6 +523,7 @@ public struct BoardView: View {
                 onEdit: { model.edit(entry) },
                 onDelete: { pendingDelete = .entry(entry) },
                 onOpenLink: { model.openLink(of: entry) },
+                onOpenURL: { model.openLink($0.absoluteString) },
                 onCopy: { model.copySelectedEntry() }
             )
         } else {

@@ -24,6 +24,12 @@ public enum BoardSelection: Hashable, Sendable {
     case board(UUID)
 }
 
+/// A year on the board's year menu and how many of the board's tasks fall in it.
+public struct YearCount: Hashable, Sendable {
+    public let year: Int
+    public let count: Int
+}
+
 public enum BoardLayout: String, CaseIterable, Sendable {
     case grid
     case list
@@ -92,22 +98,33 @@ public final class BoardViewModel {
     public private(set) var snapshot = LedgerSnapshot.empty
     /// Set by the app while signed in to Google Drive; nil hides the toolbar indicator.
     public var syncStatus: SyncStatus?
+    // Each filter refreshes the visible tasks when it really changes. Changes made together
+    // (clearing filters, revealing a task, a new snapshot) go through `batch`, which refreshes
+    // once at the end instead of once per property.
     public var selection: BoardSelection = .all {
         didSet {
+            guard selection != oldValue else { return }
             selectedEntryId = nil
-            refreshVisible()
+            refresh(years: true)
         }
     }
     /// Empty shows every kind.
     public var types: Set<EntryType> = [] {
-        didSet { refreshVisible() }
+        didSet { if types != oldValue { refresh() } }
+    }
+    /// Nil shows every year.
+    public var year: Int? {
+        didSet { if year != oldValue { refresh() } }
     }
     public var text = "" {
-        didSet { refreshVisible() }
+        didSet { if text != oldValue { refresh() } }
     }
     public var sort: EntrySort = .newest {
-        didSet { refreshVisible() }
+        didSet { if sort != oldValue { refresh() } }
     }
+    @ObservationIgnored private var isBatching = false
+    @ObservationIgnored private var needsYears = false
+    @ObservationIgnored private var needsVisible = false
 
     // Derived from `snapshot` once per update, not on every read: views read these many times
     // per redraw, and with thousands of tasks recomputing them made each click lag.
@@ -115,12 +132,16 @@ public final class BoardViewModel {
     public private(set) var boards: [Board] = []
     /// Live tasks, in file order.
     public private(set) var liveEntries: [Entry] = []
-    /// What the grid or table shows: the board, kinds, text filter, and sort applied.
+    /// What the grid or table shows: the board, kinds, year, text filter, and sort applied.
     public private(set) var visibleEntries: [Entry] = []
     /// Kinds to offer as filter chips: the known ones, then any others found in the data.
     public private(set) var availableTypes = EntryType.known
+    /// Years with tasks on the selected board (every board on All tasks), newest first. A
+    /// task spanning two years counts in both.
+    public private(set) var years: [YearCount] = []
     private var boardNames: [UUID: String] = [:]
-    private var counts: [UUID: (tasks: Int, measured: Int)] = [:]
+    /// Live tasks per board.
+    private var taskCounts: [UUID: Int] = [:]
 
     public var layout: BoardLayout = .grid
     public var selectedEntryId: UUID?
@@ -153,14 +174,15 @@ public final class BoardViewModel {
     /// arrive twice (the save path and the change stream); the second is ignored.
     public func update(_ snapshot: LedgerSnapshot) {
         guard snapshot != self.snapshot else { return }
+        batch { apply(snapshot) }
+    }
+
+    private func apply(_ snapshot: LedgerSnapshot) {
         self.snapshot = snapshot
         boards = snapshot.liveBoards
         liveEntries = snapshot.liveEntries
         boardNames = Dictionary(boards.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
-        counts = liveEntries.reduce(into: [:]) { counts, entry in
-            counts[entry.boardId, default: (0, 0)].tasks += 1
-            if !entry.metrics.isEmpty { counts[entry.boardId, default: (0, 0)].measured += 1 }
-        }
+        taskCounts = liveEntries.reduce(into: [:]) { counts, entry in counts[entry.boardId, default: 0] += 1 }
         let extra = Set(liveEntries.map(\.type)).subtracting(EntryType.known)
         availableTypes = EntryType.known + extra.sorted { $0.rawValue < $1.rawValue }
         if case .board(let id) = selection, boardNames[id] == nil {
@@ -169,11 +191,53 @@ public final class BoardViewModel {
         if let id = selectedEntryId, !liveEntries.contains(where: { $0.id == id }) {
             selectedEntryId = nil
         }
-        refreshVisible()
+        refresh(years: true)
     }
 
-    private func refreshVisible() {
-        visibleEntries = query.apply(to: liveEntries)
+    /// Runs `changes`, then refreshes whatever they touched once.
+    private func batch(_ changes: () -> Void) {
+        isBatching = true
+        changes()
+        isBatching = false
+        refresh()
+    }
+
+    /// Marks the derived lists stale and, outside a batch, recomputes them.
+    private func refresh(years: Bool = false) {
+        needsYears = needsYears || years
+        needsVisible = true
+        guard !isBatching else { return }
+        if needsYears {
+            needsYears = false
+            refreshYears()
+        }
+        if needsVisible {
+            needsVisible = false
+            visibleEntries = query.apply(to: liveEntries)
+        }
+    }
+
+    /// Recounts the year menu for the current board; drops a chosen year it no longer has.
+    private func refreshYears() {
+        let boardId = selectedBoard?.id
+        var counts: [Int: Int] = [:]
+        for entry in liveEntries where boardId == nil || entry.boardId == boardId {
+            for year in entry.years {
+                counts[year, default: 0] += 1
+            }
+        }
+        years = counts.map { YearCount(year: $0.key, count: $0.value) }.sorted { $0.year > $1.year }
+        if let year, counts[year] == nil {
+            // Inside refresh: the visible list is recomputed right after.
+            isBatching = true
+            self.year = nil
+            isBatching = false
+        }
+    }
+
+    /// Whether any filter narrows the tasks: kinds, a year, or text.
+    public var hasFilters: Bool {
+        !types.isEmpty || year != nil || !text.isEmpty
     }
 
     public var selectedBoard: Board? {
@@ -182,7 +246,7 @@ public final class BoardViewModel {
     }
 
     private var query: EntryQuery {
-        EntryQuery(boardId: selectedBoard?.id, types: types, text: text, sort: sort)
+        EntryQuery(boardId: selectedBoard?.id, types: types, year: year, text: text, sort: sort)
     }
 
     public var selectedEntry: Entry? {
@@ -192,7 +256,7 @@ public final class BoardViewModel {
 
     public func entryCount(of board: Board?) -> Int {
         guard let board else { return liveEntries.count }
-        return counts[board.id]?.tasks ?? 0
+        return taskCounts[board.id] ?? 0
     }
 
     public func boardName(of entry: Entry) -> String {
@@ -203,20 +267,24 @@ public final class BoardViewModel {
         selectedBoard?.name ?? "All tasks"
     }
 
-    /// "Jan 2026 - now · 4 tasks · 2 with metrics", under the board's name.
+    /// Under the board's name: "Jan 2024 - now · 9 tasks", "9 tasks · 2 boards" on All tasks,
+    /// and with a year chosen, "Jan 2024 - now · 4 of 9 tasks · 2026".
     public var summary: String {
-        var parts: [String]
-        let measured: Int
-        if let board = selectedBoard {
-            let count = counts[board.id] ?? (0, 0)
-            parts = [board.period(\.short), count.tasks.counted("task")]
-            measured = count.measured
+        let total = entryCount(of: selectedBoard)
+        let tasks: String
+        if let year {
+            let inYear = years.first { $0.year == year }?.count ?? 0
+            tasks = "\(inYear) of \(total.counted("task"))"
         } else {
-            parts = [liveEntries.count.counted("task"), boards.count.counted("board")]
-            measured = counts.values.reduce(0) { $0 + $1.measured }
+            tasks = total.counted("task")
         }
-        if measured > 0 { parts.append("\(measured) with metrics") }
-        return parts.joined(separator: " · ")
+        let parts: [String?] = [
+            selectedBoard?.period(\.short),
+            tasks,
+            selectedBoard == nil && year == nil ? boards.count.counted("board") : nil,
+            year.map { String($0) },
+        ]
+        return parts.compactMap { $0 }.joined(separator: " · ")
     }
 
     // MARK: Filters
@@ -230,8 +298,11 @@ public final class BoardViewModel {
     }
 
     public func clearFilters() {
-        types = []
-        text = ""
+        batch {
+            types = []
+            year = nil
+            text = ""
+        }
     }
 
     public func focusSearch() {
@@ -291,13 +362,22 @@ public final class BoardViewModel {
             selectedEntryId = entryId
             return
         }
-        clearFilters()
-        selection = .board(entry.boardId)
+        batch {
+            types = []
+            year = nil
+            text = ""
+            selection = .board(entry.boardId)
+        }
         selectedEntryId = entryId
     }
 
     public func openLink(of entry: Entry) {
         guard let link = entry.link, !link.isEmpty else { return }
+        actions.openLink(link)
+    }
+
+    /// A link inside a task's story. The app decides which links may open.
+    public func openLink(_ link: String) {
         actions.openLink(link)
     }
 

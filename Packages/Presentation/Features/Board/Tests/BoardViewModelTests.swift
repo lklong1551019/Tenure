@@ -209,4 +209,28 @@ struct BoardViewModelTests {
         #expect(runs.first == .stronglyEmphasized)
         #expect(String(StoryText.attributed("**done** `x`").characters) == "done x")
     }
+
+    @Test func yearFilterCountsPerBoardAndResetsWhenTheBoardHasNone() {
+        let model = model()
+        #expect(model.years == [YearCount(year: 2025, count: 2), YearCount(year: 2018, count: 1)])
+        model.year = 2025
+        #expect(model.visibleEntries.map(\.name) == ["Crash fix", "Onboarding"])
+        #expect(model.summary == "2 of 3 tasks · 2025")
+        model.selection = .board(b.id)
+        #expect(model.year == 2025)
+        #expect(model.summary == "Sep 2019 - now · 2 of 2 tasks · 2025")
+        model.selection = .board(a.id)
+        #expect(model.years == [YearCount(year: 2018, count: 1)])
+        #expect(model.year == nil)
+        #expect(model.visibleEntries.map(\.name) == ["CI pipeline"])
+        model.year = 2018
+        model.clearFilters()
+        #expect(model.year == nil)
+    }
+
+    @Test func storyLinksKeepOnlyWebSchemes() {
+        let text = StoryText.attributed("[web](https://example.com) [app](zoommtg://join) [file](file:///etc)")
+        let links = text.runs.compactMap(\.link).map(\.absoluteString)
+        #expect(links == ["https://example.com"])
+    }
 }

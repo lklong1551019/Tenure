@@ -27,7 +27,6 @@ final class AppModel {
     @ObservationIgnored private var observeTask: Task<Void, Never>?
     @ObservationIgnored private var syncStatusTask: Task<Void, Never>?
     @ObservationIgnored private var updateTask: Task<Void, Never>?
-    @ObservationIgnored private let releaseFeed: any ReleaseFeedPort = GitHubReleaseFeed()
     /// Software Update: the window's state and the 12-hour background check.
     @ObservationIgnored private(set) lazy var updates = UpdateViewModel(
         currentVersion: AboutInfo.load().version,
@@ -166,11 +165,15 @@ extension AppModel: BoardActions {
         Task { await dependencies.sync.syncNow() }
     }
 
+    /// Opens a task's link, or a link inside its story, in the browser. Only http and https:
+    /// the data can come from an imported or synced file, so a link must not reach another
+    /// app's URL scheme or a file. A user name in the address ("company.com@evil.com") is
+    /// refused too: it hides the real host.
     func openLink(_ link: String) {
-        let trimmed = link.trimmingCharacters(in: .whitespaces)
+        let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
         let candidate = trimmed.contains("://") ? trimmed : "https://\(trimmed)"
         guard let url = URL(string: candidate), let scheme = url.scheme?.lowercased(),
-            ["http", "https"].contains(scheme)
+            ["http", "https"].contains(scheme), url.host() != nil, url.user() == nil, url.password() == nil
         else { return }
         NSWorkspace.shared.open(url)
     }
@@ -274,7 +277,7 @@ extension AppModel: SettingsActions {
 
 extension AppModel: UpdateActions {
     func fetchReleases() async throws -> [Release] {
-        try await releaseFeed.releases()
+        try await requiredDependencies.releaseFeed.releases()
     }
 
     func openReleasePage() {

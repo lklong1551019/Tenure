@@ -1,7 +1,7 @@
 import Foundation
 
 /// Inline Markdown the editor's format buttons insert around the selected text.
-public enum MarkdownFormat: CaseIterable, Sendable {
+enum MarkdownFormat: CaseIterable, Sendable {
     case bold
     case italic
     case code
@@ -47,7 +47,7 @@ public enum MarkdownFormat: CaseIterable, Sendable {
     /// Wraps `selection` (character offsets into `text`) in this format's markers, or unwraps
     /// it when the markers are already right around it. Returns the new text and what to
     /// select next: the same words, or for a new link its address placeholder.
-    public func apply(to text: String, selection: Range<Int>) -> (text: String, selection: Range<Int>) {
+    func apply(to text: String, selection: Range<Int>) -> (text: String, selection: Range<Int>) {
         let characters = Array(text)
         let lower = min(max(selection.lowerBound, 0), characters.count)
         let upper = min(max(selection.upperBound, lower), characters.count)

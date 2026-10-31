@@ -1,5 +1,11 @@
 import Foundation
 
+/// Years a date may carry. A typo such as "20250" or a corrupt file must not produce a year
+/// the year menu or an export would loop over by the billion: out of range reads as invalid.
+public enum CalendarYears {
+    public static let valid = 1...9999
+}
+
 /// A calendar month with no time zone, such as the start of a job. Stored as "2017-07", so
 /// the data file stays readable and a Mac in another time zone shows the same month.
 public struct YearMonth: Sendable, Hashable, Comparable, Codable, CustomStringConvertible {
@@ -7,7 +13,7 @@ public struct YearMonth: Sendable, Hashable, Comparable, Codable, CustomStringCo
     public let month: Int
 
     public init(year: Int, month: Int) {
-        self.year = year
+        self.year = min(max(year, CalendarYears.valid.lowerBound), CalendarYears.valid.upperBound)
         self.month = min(max(month, 1), 12)
     }
 
@@ -19,7 +25,8 @@ public struct YearMonth: Sendable, Hashable, Comparable, Codable, CustomStringCo
     /// "2017-07"; nil for anything else.
     public init?(string: String) {
         let parts = string.split(separator: "-")
-        guard parts.count == 2, let year = Int(parts[0]), let month = Int(parts[1]), (1...12).contains(month)
+        guard parts.count == 2, let year = Int(parts[0]), CalendarYears.valid.contains(year), let month = Int(parts[1]),
+            (1...12).contains(month)
         else { return nil }
         self.init(year: year, month: month)
     }
@@ -58,7 +65,7 @@ public struct DayDate: Sendable, Hashable, Comparable, Codable, CustomStringConv
     public let day: Int
 
     public init(year: Int, month: Int, day: Int) {
-        self.year = year
+        self.year = min(max(year, CalendarYears.valid.lowerBound), CalendarYears.valid.upperBound)
         self.month = min(max(month, 1), 12)
         self.day = min(max(day, 1), 31)
     }
@@ -71,7 +78,8 @@ public struct DayDate: Sendable, Hashable, Comparable, Codable, CustomStringConv
     /// "2026-03-12"; nil for anything else.
     public init?(string: String) {
         let parts = string.split(separator: "-")
-        guard parts.count == 3, let year = Int(parts[0]), let month = Int(parts[1]), let day = Int(parts[2]),
+        guard parts.count == 3, let year = Int(parts[0]), CalendarYears.valid.contains(year), let month = Int(parts[1]),
+            let day = Int(parts[2]),
             (1...12).contains(month), (1...31).contains(day)
         else { return nil }
         self.init(year: year, month: month, day: day)

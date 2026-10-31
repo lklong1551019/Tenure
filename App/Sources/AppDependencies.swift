@@ -15,6 +15,7 @@ struct AppDependencies {
     let syncState: any SyncStatePort
     /// The one scheduler: started on launch and after sign-in, stopped on sign-out.
     let sync: SyncScheduler
+    let releaseFeed: any ReleaseFeedPort
 
     static func live() throws -> AppDependencies {
         let clock = SystemClock()
@@ -40,7 +41,8 @@ struct AppDependencies {
             isSyncConfigured: config != nil,
             driveAccount: auth,
             syncState: syncState,
-            sync: SyncScheduler(sync: syncLedger, clock: clock)
+            sync: SyncScheduler(sync: syncLedger, clock: clock),
+            releaseFeed: GitHubReleaseFeed()
         )
     }
 }

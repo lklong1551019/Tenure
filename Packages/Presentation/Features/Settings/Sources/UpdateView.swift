@@ -36,6 +36,8 @@ public struct UpdateView: View {
         .task {
             if model.state == .idle { await model.check() }
         }
+        .onAppear { model.markAnnounced() }
+        .onChange(of: model.latest) { model.markAnnounced() }
     }
 
     private var header: some View {

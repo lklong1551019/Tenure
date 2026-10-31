@@ -96,6 +96,14 @@ to fetch: the app only tells you a newer version exists and what changed. `GitHu
 (App) reads `App/Sources/Changelog.json` from `main` on GitHub; that file changes only in
 release commits, so it lists exactly the released versions. `UpdateCheck` (Domain) decodes it
 and keeps the versions newer than this build; `UpdateViewModel` (Settings) runs the check from
-Tenure > Check for Updates, Settings > About, and every 12 hours in the background, opening the
-Software Update window once per new version. The feed is a port implemented in App rather
-than a Data module: one HTTPS GET with no credentials did not justify a module of its own.
+Tenure > Check for Updates, Settings > About, and every 12 hours in the background (an hour
+after a failure), asking for the Software Update window until it has shown a new version. The
+feed runs off the main actor with no cookies or disk cache and reads at most 256 KB. It is a
+port implemented in App rather than a Data module: one HTTPS GET with no credentials did not
+justify a module of its own.
+
+## Links
+
+A task's link and links inside its story open only when they are http or https, with a host
+and no user name in the address (`AppModel.openLink`). Story Markdown drops any other link, so
+an imported or synced file cannot make a click open another app's URL scheme or a file.

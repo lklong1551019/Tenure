@@ -89,8 +89,19 @@ enum StoryText {
         }
     }
 
+    /// Links keep only http and https; any other scheme (another app's, `file:`) is shown as
+    /// plain text, since story text can come from an imported or synced file.
     static func attributed(_ text: String) -> AttributedString {
         let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: markdown(text), options: options)) ?? AttributedString(text)
+        guard var result = try? AttributedString(markdown: markdown(text), options: options) else {
+            return AttributedString(text)
+        }
+        for run in result.runs {
+            guard let url = run.link else { continue }
+            if !["http", "https"].contains(url.scheme?.lowercased() ?? "") {
+                result[run.range].link = nil
+            }
+        }
+        return result
     }
 }
