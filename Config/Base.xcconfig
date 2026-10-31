@@ -14,8 +14,8 @@ PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_ID)$(BUNDLE_ID_SUFFIX)
 // so a code tells at a glance which kind of build it is. scripts/release.sh sets both lines;
 // scripts/install-app.sh picks the odd build for each install.
 MARKETING_VERSION = 26.11.01
-CURRENT_PROJECT_VERSION = 26110101
-CURRENT_PROJECT_VERSION[config=Debug] = 26110102
+CURRENT_PROJECT_VERSION = 26110103
+CURRENT_PROJECT_VERSION[config=Debug] = 26110104
 
 SDKROOT = macosx
 SUPPORTED_PLATFORMS = macosx

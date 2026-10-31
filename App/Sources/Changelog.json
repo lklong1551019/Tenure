@@ -1,6 +1,23 @@
 {
   "releases" : [
     {
+      "code" : "26110103",
+      "date" : "2026-10-31",
+      "fixed" : [
+
+      ],
+      "improved" : [
+
+      ],
+      "new" : [
+        "Filter a board's tasks by year",
+        "Tenure in the browser on the same Drive file",
+        "Import tasks pasted from a spreadsheet",
+        "Updates compare build codes, and releases are tagged by code"
+      ],
+      "version" : "26.11.01"
+    },
+    {
       "code" : "26110101",
       "date" : "2026-10-30",
       "fixed" : [
