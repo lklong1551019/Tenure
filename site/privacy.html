@@ -16,13 +16,13 @@
 </style>
 </head>
 <body>
-<nav><a href="./">Tenure</a> <a href="releases.html">Releases</a> <a href="privacy.html">Privacy</a></nav>
+<nav><a href="./">Tenure</a> <a href="app/">Web app</a> <a href="releases.html">Releases</a> <a href="privacy.html">Privacy</a></nav>
 <h1>Tenure - Privacy Policy</h1>
-<p class="updated">Last updated: 30 October 2026 (update checks added)</p>
+<p class="updated">Last updated: 31 October 2026 (web app added)</p>
 
-<p>Tenure is a macOS app that keeps a record of your work history in a file on your Mac. It
-has no server and no account system of its own. This page explains what the app does with
-your Google data when you turn on Google Drive sync.</p>
+<p>Tenure is a macOS app that keeps a record of your work history in a file on your Mac, and a
+web app that opens the same file from your Google Drive in a browser. Neither has a server or
+an account system of its own. This page explains what they do with your Google data.</p>
 
 <h2>What the app accesses</h2>
 <ul>
@@ -42,13 +42,31 @@ your Google data when you turn on Google Drive sync.</p>
     uploaded and never sent anywhere except to Google to authorize Drive requests.</li>
 </ul>
 
+<h2>Tenure on the web</h2>
+<ul>
+  <li>The web app at <code>lklong1551019.github.io/Tenure/app/</code> runs entirely in your
+    browser. It talks directly to Google's sign-in and to Google Drive; there is no Tenure server
+    in between.</li>
+  <li>It asks for the same single permission (<code>drive.file</code>) and reads and updates
+    only the <code>tenure.json</code> file the Mac app created. It never creates other files.</li>
+  <li>The sign-in token lasts about an hour and is kept only in the open page's memory. It is
+    gone when you close the tab or sign out, and is never written to the browser's storage or
+    sent anywhere except to Google.</li>
+  <li>Your data is held in the page's memory while it is open and is not stored in the browser.
+    The page remembers two display settings (grid or list, and sort order) in the browser's
+    local storage; nothing else.</li>
+  <li>No cookies, analytics, or tracking. The page loads Google's sign-in script from
+    <code>accounts.google.com</code>. GitHub Pages serves the page's files and, like any web
+    host, sees an ordinary request from your network address; it never sees your data.</li>
+</ul>
+
 <h2>What the app does not do</h2>
 <ul>
   <li>No analytics, tracking, advertising, or crash reporting.</li>
   <li>No data is sent to the developer or to any third party. The app talks to Google's
     sign-in and Drive services, and to GitHub to check for a newer version.</li>
   <li>Your data is never sold, shared, or used for any purpose other than syncing your own
-    file between your own Macs.</li>
+    file between your own Macs and showing it to you on the web.</li>
 </ul>
 
 <h2>Update checks</h2>
@@ -64,8 +82,9 @@ Services User Data Policy</a>, including the Limited Use requirements.</p>
 
 <h2>Removing access and data</h2>
 <ul>
-  <li>Sign out in the app's settings, or revoke access at any time at
-    <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+  <li>Sign out in the app's settings or on the web page, or revoke access at any time at
+    <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+    The Mac app and the web app are signed out separately.</li>
   <li>Delete the "Tenure" folder from your Google Drive to remove the copy. The data on your
     Mac is unaffected.</li>
 </ul>

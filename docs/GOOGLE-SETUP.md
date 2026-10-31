@@ -56,6 +56,23 @@ without quotes; the `_DEV` pair takes the development client, or is removed. The
 git-ignored and blocked by the pre-commit hook; examples anywhere else use `temp`. A build
 without it has sync turned off.
 
+## 6. Web client
+
+The web app (`web/`, published at `https://<user>.github.io/<repo>/app/`) signs in with its own
+client in the **same project**, so it can open the `tenure.json` the Mac app created
+(`drive.file` access follows the project).
+
+1. **Clients** -> Create client -> Application type **Web application**, name `Tenure web`.
+2. **Authorized JavaScript origins**: `https://<user>.github.io`, and `http://localhost:5173`
+   for `npm run dev`. No redirect URI: the token model uses a popup.
+3. **Data Access** stays `drive.file` only.
+4. Copy the client id into the GitHub repository: Settings -> Secrets and variables ->
+   Actions -> **Variables** -> `GOOGLE_WEB_CLIENT_ID`. A web client id is public (it ships in the
+   page), so it is a variable, not a secret; the repository itself keeps `temp`. For local
+   runs, put `VITE_GOOGLE_CLIENT_ID=<id>` in the ignored `web/.env.local`.
+5. Run the Pages workflow (push to `main` or run it by hand), open the web app, sign in, and
+   check that your boards appear. See [WEB.md](WEB.md).
+
 ## Access model
 
 - `drive.file` grants access only to files this app created. Other Drive content stays
@@ -64,6 +81,8 @@ without it has sync turned off.
   the existing `tenure.json` and merges it.
 - The refresh token is stored in the Keychain on each Mac (this device only, readable while
   the Mac is unlocked), never in the data file. The access token stays in memory.
+- The web app gets no refresh token: an access token of about an hour, in the page's memory
+  only. Each visit, and each hour, takes one click on "Sign in with Google".
 - The file in Drive is plain JSON, not encrypted by the app.
 - Revoke at any time in the Google account under Security -> Third-party access, or with Sign
-  out in the app.
+  out in the app. The Mac and web clients are revoked separately.

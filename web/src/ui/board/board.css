@@ -1,0 +1,365 @@
+/* The board screen: sidebar, toolbar, and the tasks as a grid or a list. */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 10px;
+}
+
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 8px;
+  min-height: var(--control-height);
+}
+
+.sidebar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--radius-control);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.sidebar-item:hover {
+  background: var(--sunken);
+}
+
+.sidebar-item.is-active {
+  background: var(--teal-soft);
+  color: var(--accent-ink);
+}
+
+.sidebar-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: var(--border-strong);
+}
+
+.toolbar-search {
+  position: relative;
+  flex: 1 1 220px;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+}
+
+.toolbar-search svg {
+  position: absolute;
+  left: 10px;
+}
+
+.toolbar-search .field {
+  padding-left: 32px;
+  color: var(--ink);
+}
+
+.toolbar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The year menu, as YearFilterChip on the Mac: a capsule, teal while a year is chosen. */
+.year-filter {
+  position: relative;
+}
+
+.year-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.year-chip.is-on {
+  background: var(--teal-soft);
+  border-color: var(--teal);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+.year-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.year-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.year-menu hr {
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.year-menu-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.year-menu-row:hover {
+  background: var(--sunken);
+}
+
+.year-menu-row.is-on {
+  background: var(--teal-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.year-menu-count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbar-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-controls select {
+  width: auto;
+}
+
+.segmented {
+  display: inline-flex;
+}
+
+.segmented .button {
+  border-radius: 0;
+}
+
+.segmented .button:first-child {
+  border-radius: var(--radius-control) 0 0 var(--radius-control);
+}
+
+.segmented .button:last-child {
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  margin-left: -1px;
+}
+
+.segmented .button[aria-pressed='true'] {
+  background: var(--teal-soft);
+  color: var(--accent-ink);
+}
+
+.entry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.entry-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 150px;
+  padding: 14px 16px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.entry-card:hover {
+  border-color: var(--border-strong);
+}
+
+.entry-card.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.entry-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.entry-date {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.entry-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.entry-excerpt {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.entry-excerpt.is-empty {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.entry-metric {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--sunken);
+  border-radius: var(--radius-control);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.entry-metric-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink-2);
+}
+
+.entry-muted {
+  color: var(--muted);
+}
+
+.entry-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.entry-footer-board {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.entry-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.entry-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.entry-row:last-child {
+  border-bottom: none;
+}
+
+.entry-row:hover {
+  background: var(--sunken);
+}
+
+.entry-row.is-selected {
+  background: var(--teal-soft);
+}
+
+.entry-row-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry-row-board {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .entry-row-board {
+    display: none;
+  }
+}

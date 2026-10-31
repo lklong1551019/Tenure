@@ -1,7 +1,16 @@
-# Weekly pull requests to update the pinned GitHub Actions in .github/workflows.
+# Weekly pull requests to update the pinned GitHub Actions in .github/workflows and the web
+# app's npm packages (web/package-lock.json).
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    # One pull request for every minor and patch bump; majors come one by one.
+    groups:
+      web:
+        update-types: [minor, patch]
