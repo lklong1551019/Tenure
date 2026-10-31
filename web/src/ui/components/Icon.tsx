@@ -16,6 +16,7 @@ const paths = {
   copy: 'M9 9h10v11H9zM5 15V4h10',
   download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
   menu: 'M4 6h16M4 12h16M4 18h16',
+  sidebar: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1ZM9 5v14',
   close: 'M6 6l12 12M18 6 6 18',
   back: 'M15 5l-7 7 7 7',
   sync: 'M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3M5 4v4h4M19 20v-4h-4',

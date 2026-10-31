@@ -30,6 +30,8 @@ export function BoardScreen(props: {
   state: AppState
   menuOpen: boolean
   onMenu: (open: boolean) => void
+  /** The boards column is collapsed on a wide screen. */
+  sidebarHidden: boolean
 }) {
   const { model, state } = props
   const { boardId, entryId } = useParams()
@@ -90,7 +92,9 @@ export function BoardScreen(props: {
 
   const loading = !state.loaded && state.sync.kind !== 'failed'
   return (
-    <div className={`panes${selected ? '' : ' no-detail'}`}>
+    <div
+      className={`panes${selected ? '' : ' no-detail'}${props.sidebarHidden ? ' sidebar-hidden' : ''}`}
+    >
       <aside className={`pane-sidebar${props.menuOpen ? ' is-open' : ''}`}>
         <Sidebar
           boards={boards}
