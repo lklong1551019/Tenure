@@ -34,7 +34,7 @@ struct UpdateViewModelTests {
     }()
 
     func model() -> UpdateViewModel {
-        UpdateViewModel(currentVersion: "26.10.01", actions: actions, defaults: defaults)
+        UpdateViewModel(currentVersion: "26.10.01", currentCode: "26100101", actions: actions, defaults: defaults)
     }
 
     @Test func manualCheckShowsNewerReleasesOrUpToDate() async {
@@ -86,7 +86,10 @@ struct UpdateViewModelTests {
         actions.releases = [Release(version: "26.11.01")]
         await model.checkInBackground()
         #expect(actions.fetches == 0)
-        #expect(UpdateViewModel(currentVersion: "1", actions: actions, defaults: defaults).checksAutomatically == false)
+        #expect(
+            UpdateViewModel(currentVersion: "1", currentCode: "1", actions: actions, defaults: defaults)
+                .checksAutomatically == false
+        )
         #expect(model.secondsUntilNextCheck() == UpdateViewModel.interval)
     }
 
@@ -103,5 +106,17 @@ struct UpdateViewModelTests {
     @Test func copiesTheInstallCommand() {
         model().copyInstallCommand()
         #expect(actions.copied == [UpdateViewModel.installCommand])
+    }
+
+    @Test func aLaterBuildOfTheSameVersionIsAnUpdate() async {
+        let model = UpdateViewModel(
+            currentVersion: "26.11.01",
+            currentCode: "26110101",
+            actions: actions,
+            defaults: defaults
+        )
+        actions.releases = [Release(version: "26.11.01"), Release(version: "26.11.01", code: 26_110_103)]
+        await model.check()
+        #expect(model.latest?.title == "26.11.01 - 26110103")
     }
 }

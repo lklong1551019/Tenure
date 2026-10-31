@@ -98,9 +98,11 @@ Tenure is built and installed on each Mac (`scripts/install-app.sh`), so there i
 to fetch: the app only tells you a newer version exists and what changed. `GitHubReleaseFeed`
 (App) reads `App/Sources/Changelog.json` from `main` on GitHub; that file changes only in
 release commits, so it lists exactly the released versions. `UpdateCheck` (Domain) decodes it
-and keeps the versions newer than this build; `UpdateViewModel` (Settings) runs the check from
-Tenure > Check for Updates, Settings > About, and every 12 hours in the background (an hour
-after a failure), asking for the Software Update window until it has shown a new version. The
+and keeps the releases whose build code (YYMMNNBB) is higher than this build's, so a later
+build of the same version (26.11.01 - 26110103) counts as an update. `UpdateViewModel`
+(Settings) runs the check from Tenure > Check for Updates, Settings > About, and every 12
+hours in the background (an hour after a failure), asking for the Software Update window
+until it has shown a new build. The
 feed runs off the main actor with no cookies or disk cache and reads at most 256 KB. It is a
 port implemented in App rather than a Data module: one HTTPS GET with no credentials did not
 justify a module of its own.

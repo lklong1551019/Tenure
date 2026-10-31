@@ -30,6 +30,7 @@ final class AppModel {
     /// Software Update: the window's state and the 12-hour background check.
     @ObservationIgnored private(set) lazy var updates = UpdateViewModel(
         currentVersion: AboutInfo.load().version,
+        currentCode: AboutInfo.load().code,
         actions: self
     )
 

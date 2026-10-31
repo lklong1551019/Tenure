@@ -2,7 +2,7 @@
 // notes as text for the release tag. Called by scripts/release.sh.
 //
 //   git log --format=%s <prev>..HEAD | swift scripts/changelog.swift <version> <code> <date>
-//   swift scripts/changelog.swift --print <version>    notes of a release already in the file
+//   swift scripts/changelog.swift --print <code>       notes of a release already in the file
 //
 // Subjects read `feat: add markdown export` or `feat(ui): add markdown export`; the Credentials
 // Manager form `[CM-12][Tag] feat: ...` is accepted too. Only user-facing types make it in:
@@ -30,7 +30,7 @@ if arguments.count == 2, arguments[0] == "--print" {
     let data = try Data(contentsOf: file)
     let root = try JSONSerialization.jsonObject(with: data) as? [String: Any]
     let releases = root?["releases"] as? [[String: Any]] ?? []
-    guard let release = releases.first(where: { $0["version"] as? String == arguments[1] }) else {
+    guard let release = releases.first(where: { $0["code"] as? String == arguments[1] }) else {
         FileHandle.standardError.write(Data("\(arguments[1]) is not in \(file.path)\n".utf8))
         exit(1)
     }
@@ -39,7 +39,7 @@ if arguments.count == 2, arguments[0] == "--print" {
 }
 
 guard arguments.count == 3 else {
-    FileHandle.standardError.write(Data("usage: changelog.swift <version> <code> <date> | --print <version>\n".utf8))
+    FileHandle.standardError.write(Data("usage: changelog.swift <version> <code> <date> | --print <code>\n".utf8))
     exit(2)
 }
 let (version, code, date) = (arguments[0], arguments[1], arguments[2])
@@ -80,8 +80,9 @@ guard var root = try JSONSerialization.jsonObject(with: data) as? [String: Any] 
     exit(1)
 }
 var releases = root["releases"] as? [[String: Any]] ?? []
-guard !releases.contains(where: { $0["version"] as? String == version }) else {
-    FileHandle.standardError.write(Data("\(version) is already in \(file.path)\n".utf8))
+// A release is one build: the same version can ship again as a later build (26110103).
+guard !releases.contains(where: { $0["code"] as? String == code }) else {
+    FileHandle.standardError.write(Data("\(code) is already in \(file.path)\n".utf8))
     exit(1)
 }
 releases.insert(
