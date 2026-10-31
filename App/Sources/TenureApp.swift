@@ -39,6 +39,10 @@ struct TenureApp: App {
                     .disabled(!model.isReady)
             }
             CommandGroup(replacing: .importExport) {
+                Button("Import Tasks...") { model.board?.beginImport() }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
+                    .disabled(model.board?.boards.isEmpty ?? true)
+                Divider()
                 Button("Export Board as Markdown...") { model.board?.exportCurrent() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
                     .disabled(!(model.board?.canExport ?? false))

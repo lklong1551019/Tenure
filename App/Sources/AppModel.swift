@@ -178,6 +178,11 @@ extension AppModel: BoardActions {
         NSWorkspace.shared.open(url)
     }
 
+    func importEntries(_ entries: [Entry]) async throws {
+        try await requiredDependencies.store.save(entries)
+        await changed()
+    }
+
     func copyText(_ text: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)

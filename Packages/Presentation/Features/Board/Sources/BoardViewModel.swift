@@ -16,6 +16,8 @@ public protocol BoardActions: AnyObject {
     func requestSync()
     func openLink(_ link: String)
     func copyText(_ text: String)
+    /// Adds imported tasks in one write.
+    func importEntries(_ entries: [Entry]) async throws
     func now() -> Timestamp
 }
 
@@ -80,6 +82,14 @@ public struct YearExportDraft: Identifiable, Sendable, Equatable {
     /// Nil exports every board.
     public var boardId: UUID?
     public var options = MarkdownOptions()
+}
+
+/// The import sheet's choices: the pasted or loaded text, the target board, and the kind.
+public struct ImportDraft: Identifiable, Sendable, Equatable {
+    public let id = UUID()
+    public var text = ""
+    public var boardId: UUID
+    public var type: EntryType = .dev
 }
 
 /// A Markdown file waiting for the save panel.
@@ -149,6 +159,7 @@ public final class BoardViewModel {
     /// The keyboard shortcuts sheet (Cmd-/).
     public var showsShortcuts = false
     public var yearExport: YearExportDraft?
+    public var importDraft: ImportDraft?
     /// Set when a file is ready; the view shows the save panel.
     public var exportFile: ExportFile?
     public private(set) var toast: String?
@@ -445,6 +456,37 @@ public final class BoardViewModel {
         switch result {
         case .success: show("Exported")
         case .failure: errorMessage = "Couldn't save the file."
+        }
+    }
+
+    // MARK: Import
+
+    /// Opens the import sheet on the selected board, or the newest one.
+    public func beginImport() {
+        guard let board = selectedBoard ?? boards.first else { return }
+        importDraft = ImportDraft(boardId: board.id)
+    }
+
+    /// The draft's rows, read and checked against the target board's tasks.
+    public func importRows(_ draft: ImportDraft) -> [ImportRow] {
+        TaskImport.review(draft.text, boardId: draft.boardId, existing: liveEntries)
+    }
+
+    /// `draft` is the sheet's edited copy of `importDraft`. Imports the ready rows, then shows
+    /// the board they went to.
+    public func importTasks(_ draft: ImportDraft) async {
+        let entries = TaskImport.entries(
+            from: importRows(draft),
+            boardId: draft.boardId,
+            type: draft.type,
+            createdAt: actions.now()
+        )
+        guard !entries.isEmpty else { return }
+        await perform("Couldn't import the tasks.") {
+            try await self.actions.importEntries(entries)
+            self.importDraft = nil
+            self.selection = .board(draft.boardId)
+            self.show("Imported \(entries.count.counted("task"))")
         }
     }
 

@@ -33,8 +33,12 @@ Open `Tenure.xcodeproj` and run the `Tenure` scheme, or install a Release build 
 ## Data
 
 `~/Library/Containers/com.lklong1997.Tenure/Data/Library/Application Support/Tenure/tenure.json`
-(Debug builds: `com.lklong1997.Tenure.dev`). Settings > Data shows it in Finder and exports
-or imports a copy.
+(Debug builds: `com.lklong1997.Tenure.dev`). This file is the source of truth; Google Drive
+keeps a synced copy for your other Macs and the web app. Settings > Data shows it in Finder
+and exports or imports a copy.
+
+To add many tasks at once, copy rows from a spreadsheet (name, link, date, end date) and use
+File > Import Tasks (Shift-Cmd-I): it previews every row and adds the ready ones.
 
 ## Docs
 
