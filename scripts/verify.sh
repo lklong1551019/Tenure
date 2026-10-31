@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Every check a change must pass before commit: build, tests, dependency rule, format,
-# and a scan of uncommitted changes for secret-shaped values.
+# the web app's checks, and a scan of uncommitted changes for secret-shaped values.
 #   scripts/verify.sh
 set -u
 
@@ -29,6 +29,12 @@ if [ -f Config/Local.xcconfig ]; then
     -configuration Debug -derivedDataPath .build/xcode -allowProvisioningUpdates build
 else
   echo "skip  app build   (no Config/Local.xcconfig; copy Config/Local.example.xcconfig)"
+fi
+
+if command -v npm >/dev/null 2>&1 && [ -d web/node_modules ]; then
+  step "web check" npm --prefix web run check
+elif [ -d web ]; then
+  echo "skip  web check   (run: npm --prefix web ci)"
 fi
 
 # Same patterns as the pre-commit hook. Only file names and line numbers are printed,

@@ -1,0 +1,238 @@
+{
+  "boards" : [
+    {
+      "createdAt" : 1780000000001,
+      "end" : "2019-08",
+      "id" : "00000000-0000-4000-8000-0000000000B1",
+      "name" : "Company A",
+      "start" : "2017-07",
+      "updatedAt" : 1780000000002
+    },
+    {
+      "createdAt" : 1780000000003,
+      "id" : "00000000-0000-4000-8000-0000000000B2",
+      "name" : "Zalo / VNG \"core\"",
+      "start" : "2019-09",
+      "updatedAt" : 1780000000004
+    },
+    {
+      "createdAt" : 1780000000005,
+      "deletedAt" : 1780000000009,
+      "end" : "2016-02",
+      "id" : "00000000-0000-4000-8000-0000000000B3",
+      "name" : "Gone",
+      "start" : "2015-01",
+      "updatedAt" : 1780000000009
+    }
+  ],
+  "entries" : [
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B2",
+      "createdAt" : 1780000000010,
+      "date" : "2026-03-12",
+      "difficulties" : "  Profiling on <b>real</b> devices  ",
+      "endDate" : "2026-04-02",
+      "id" : "00000000-0000-4000-8000-0000000000E1",
+      "impact" : "",
+      "link" : "https://jira.example.com/browse/T-1?a=b&c=d",
+      "metrics" : [
+        {
+          "after" : "0.9",
+          "before" : "1.8",
+          "id" : "00000000-0000-4000-8000-0000000000A1",
+          "label" : "Cold start",
+          "note" : "Pixel 7, n=20",
+          "unit" : "s"
+        },
+        {
+          "after" : "~0.1%",
+          "id" : "00000000-0000-4000-8000-0000000000A2",
+          "label" : "Crash | rate"
+        },
+        {
+          "after" : "1,350",
+          "before" : "1,200",
+          "id" : "00000000-0000-4000-8000-0000000000A3",
+          "label" : "Requests",
+          "unit" : " "
+        }
+      ],
+      "name" : "Cold start \"fast\" path",
+      "problem" : "Launch took **1.8 s** on\nmid-range phones.\n\n- one\n- two",
+      "solution" : "Lazy init, a `tab\there`, a back\\slash, a bell \u0007, a nul-ish \u0001, \b\f\u001b\r  ﻿.",
+      "tags" : [
+        "perf",
+        "android/ios",
+        "Việt"
+      ],
+      "type" : "product",
+      "updatedAt" : 1780000000011,
+      "why" : "Users in Việt Nam 🇻🇳 open it many times a day."
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B2",
+      "createdAt" : 1780000000012,
+      "date" : "2025-12-31",
+      "difficulties" : "",
+      "endDate" : "2026-01-02",
+      "id" : "00000000-0000-4000-8000-0000000000E2",
+      "impact" : "",
+      "metrics" : [
+
+      ],
+      "name" : "Fix crash on resume",
+      "problem" : "NPE",
+      "solution" : "",
+      "tags" : [
+
+      ],
+      "type" : "bugFix",
+      "updatedAt" : 1780000000013,
+      "why" : ""
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B2",
+      "createdAt" : 1780000000014,
+      "date" : "2026-03-12",
+      "difficulties" : "",
+      "id" : "00000000-0000-4000-8000-0000000000E3",
+      "impact" : "",
+      "metrics" : [
+
+      ],
+      "name" : "",
+      "problem" : "",
+      "solution" : "",
+      "tags" : [
+
+      ],
+      "type" : "research",
+      "updatedAt" : 1780000000015,
+      "why" : ""
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B2",
+      "createdAt" : 1780000000016,
+      "date" : "2026-01-01",
+      "deletedAt" : 1780000000018,
+      "difficulties" : "",
+      "id" : "00000000-0000-4000-8000-0000000000E4",
+      "impact" : "",
+      "metrics" : [
+
+      ],
+      "name" : "Deleted task",
+      "problem" : "",
+      "solution" : "",
+      "tags" : [
+
+      ],
+      "type" : "dev",
+      "updatedAt" : 1780000000018,
+      "why" : ""
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B1",
+      "createdAt" : 1780000000019,
+      "date" : "2018-05-01",
+      "difficulties" : "",
+      "id" : "00000000-0000-4000-8000-0000000000E5",
+      "impact" : "Saved [money](https://example.com) and [x](javascript:alert(1)).",
+      "link" : "jira/T-9",
+      "metrics" : [
+
+      ],
+      "name" : "Write-up on caching",
+      "problem" : "",
+      "solution" : "",
+      "tags" : [
+        "cache"
+      ],
+      "type" : "findings",
+      "updatedAt" : 1780000000020,
+      "why" : ""
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B1",
+      "createdAt" : 1780000000021,
+      "date" : "2018-06-01",
+      "difficulties" : "",
+      "id" : "00000000-0000-4000-8000-0000000000E6",
+      "impact" : "",
+      "metrics" : [
+
+      ],
+      "name" : "Task 10",
+      "problem" : "",
+      "solution" : "",
+      "tags" : [
+
+      ],
+      "type" : "dev",
+      "updatedAt" : 1780000000022,
+      "why" : ""
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B1",
+      "createdAt" : 1780000000023,
+      "date" : "2018-06-01",
+      "difficulties" : "",
+      "id" : "00000000-0000-4000-8000-0000000000E7",
+      "impact" : "",
+      "metrics" : [
+
+      ],
+      "name" : "Task 2",
+      "problem" : "",
+      "solution" : "",
+      "tags" : [
+
+      ],
+      "type" : "dev",
+      "updatedAt" : 1780000000024,
+      "why" : ""
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B1",
+      "createdAt" : 1780000000025,
+      "date" : "2018-06-01",
+      "difficulties" : "",
+      "id" : "00000000-0000-4000-8000-0000000000E8",
+      "impact" : "",
+      "metrics" : [
+
+      ],
+      "name" : "apple pie",
+      "problem" : "",
+      "solution" : "",
+      "tags" : [
+        "Đà Lạt"
+      ],
+      "type" : "dev",
+      "updatedAt" : 1780000000026,
+      "why" : ""
+    },
+    {
+      "boardId" : "00000000-0000-4000-8000-0000000000B3",
+      "createdAt" : 1780000000027,
+      "date" : "2015-06-01",
+      "difficulties" : "",
+      "id" : "00000000-0000-4000-8000-0000000000E9",
+      "impact" : "",
+      "metrics" : [
+
+      ],
+      "name" : "On a deleted board",
+      "problem" : "",
+      "solution" : "",
+      "tags" : [
+
+      ],
+      "type" : "dev",
+      "updatedAt" : 1780000000028,
+      "why" : ""
+    }
+  ],
+  "format" : "tenure",
+  "version" : 1
+}

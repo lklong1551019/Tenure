@@ -1,0 +1,170 @@
+{
+  "exportedOn" : "2026-10-31",
+  "exports" : [
+    {
+      "markdown" : "# Tenure\n\nExported from Tenure on 31 Oct 2026. 7 tasks from 2 boards.\n\n## Zalo / VNG \"core\"\n\nSep 2019 - now\n\n### Fix crash on resume\n\nBug fix · 31 Dec 2025 - 2 Jan 2026\n\n**Problem**\n\nNPE\n\n### Untitled\n\nResearch · 12 Mar 2026\n\n### Cold start \"fast\" path\n\nProduct · 12 Mar 2026 - 2 Apr 2026 · <https://jira.example.com/browse/T-1?a=b&c=d>\n\nTags: perf, android/ios, Việt\n\n**Problem**\n\nLaunch took **1.8 s** on\nmid-range phones.\n\n- one\n- two\n\n**Why**\n\nUsers in Việt Nam 🇻🇳 open it many times a day.\n\n**Solution**\n\nLazy init, a `tab\there`, a back\\slash, a bell \u0007, a nul-ish \u0001, \b\f\u001b\r  ﻿.\n\n**Difficulties and how they were solved**\n\nProfiling on <b>real</b> devices\n\n| Metric | Before | After | Change | Note |\n|---|---|---|---|---|\n| Cold start | 1.8 s | 0.9 s | -50% | Pixel 7, n=20 |\n| Crash \\| rate |  | ~0.1% |  |  |\n| Requests | 1,200 | 1,350 | +13% |  |\n\n## Company A\n\nJul 2017 - Aug 2019\n\n### Write-up on caching\n\nFindings · 1 May 2018 · jira/T-9\n\nTags: cache\n\n**Impact**\n\nSaved [money](https://example.com) and [x](javascript:alert(1)).\n\n### apple pie\n\nDev · 1 Jun 2018\n\nTags: Đà Lạt\n\n### Task 2\n\nDev · 1 Jun 2018\n\n### Task 10\n\nDev · 1 Jun 2018\n",
+      "name" : "all"
+    },
+    {
+      "markdown" : "# 2026\n\nExported from Tenure on 31 Oct 2026. 3 tasks from 1 board.\n\n## Zalo / VNG \"core\"\n\nSep 2019 - now\n\n### Fix crash on resume\n\nBug fix · 31 Dec 2025 - 2 Jan 2026\n\n**Problem**\n\nNPE\n\n### Untitled\n\nResearch · 12 Mar 2026\n\n### Cold start \"fast\" path\n\nProduct · 12 Mar 2026 - 2 Apr 2026 · <https://jira.example.com/browse/T-1?a=b&c=d>\n\nTags: perf, android/ios, Việt\n\n**Problem**\n\nLaunch took **1.8 s** on\nmid-range phones.\n\n- one\n- two\n\n**Why**\n\nUsers in Việt Nam 🇻🇳 open it many times a day.\n\n**Solution**\n\nLazy init, a `tab\there`, a back\\slash, a bell \u0007, a nul-ish \u0001, \b\f\u001b\r  ﻿.\n\n**Difficulties and how they were solved**\n\nProfiling on <b>real</b> devices\n\n| Metric | Before | After | Change | Note |\n|---|---|---|---|---|\n| Cold start | 1.8 s | 0.9 s | -50% | Pixel 7, n=20 |\n| Crash \\| rate |  | ~0.1% |  |  |\n| Requests | 1,200 | 1,350 | +13% |  |\n",
+      "name" : "year 2026"
+    },
+    {
+      "markdown" : "# 2026\n\nExported from Tenure on 31 Oct 2026. 3 tasks from 1 board.\n\n## Zalo / VNG \"core\"\n\nSep 2019 - now\n\n### Fix crash on resume\n\nBug fix · 31 Dec 2025 - 2 Jan 2026\n\n### Untitled\n\nResearch · 12 Mar 2026\n\n### Cold start \"fast\" path\n\nProduct · 12 Mar 2026 - 2 Apr 2026\n",
+      "name" : "year 2026 one board, bare"
+    },
+    {
+      "markdown" : "# Zalo / VNG \"core\"\n\nSep 2019 - now · 3 tasks\n\nExported from Tenure on 31 Oct 2026.\n\n## Fix crash on resume\n\nBug fix · 31 Dec 2025 - 2 Jan 2026\n\n**Problem**\n\nNPE\n\n## Untitled\n\nResearch · 12 Mar 2026\n\n## Cold start \"fast\" path\n\nProduct · 12 Mar 2026 - 2 Apr 2026 · <https://jira.example.com/browse/T-1?a=b&c=d>\n\nTags: perf, android/ios, Việt\n\n**Problem**\n\nLaunch took **1.8 s** on\nmid-range phones.\n\n- one\n- two\n\n**Why**\n\nUsers in Việt Nam 🇻🇳 open it many times a day.\n\n**Solution**\n\nLazy init, a `tab\there`, a back\\slash, a bell \u0007, a nul-ish \u0001, \b\f\u001b\r  ﻿.\n\n**Difficulties and how they were solved**\n\nProfiling on <b>real</b> devices\n\n| Metric | Before | After | Change | Note |\n|---|---|---|---|---|\n| Cold start | 1.8 s | 0.9 s | -50% | Pixel 7, n=20 |\n| Crash \\| rate |  | ~0.1% |  |  |\n| Requests | 1,200 | 1,350 | +13% |  |\n",
+      "name" : "board Zalo / VNG \"core\""
+    },
+    {
+      "markdown" : "# Company A\n\nJul 2017 - Aug 2019 · 4 tasks\n\nExported from Tenure on 31 Oct 2026.\n\n## Write-up on caching\n\nFindings · 1 May 2018 · jira/T-9\n\nTags: cache\n\n**Impact**\n\nSaved [money](https://example.com) and [x](javascript:alert(1)).\n\n## apple pie\n\nDev · 1 Jun 2018\n\nTags: Đà Lạt\n\n## Task 2\n\nDev · 1 Jun 2018\n\n## Task 10\n\nDev · 1 Jun 2018\n",
+      "name" : "board Company A"
+    },
+    {
+      "markdown" : "# On a deleted board\n\nDev · 1 Jun 2015\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E9"
+    },
+    {
+      "markdown" : "# apple pie\n\nDev · 1 Jun 2018\n\nTags: Đà Lạt\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E8"
+    },
+    {
+      "markdown" : "# Task 2\n\nDev · 1 Jun 2018\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E7"
+    },
+    {
+      "markdown" : "# Task 10\n\nDev · 1 Jun 2018\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E6"
+    },
+    {
+      "markdown" : "# Write-up on caching\n\nFindings · 1 May 2018 · jira/T-9\n\nTags: cache\n\n**Impact**\n\nSaved [money](https://example.com) and [x](javascript:alert(1)).\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E5"
+    },
+    {
+      "markdown" : "# Untitled\n\nResearch · 12 Mar 2026\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E3"
+    },
+    {
+      "markdown" : "# Fix crash on resume\n\nBug fix · 31 Dec 2025 - 2 Jan 2026\n\n**Problem**\n\nNPE\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E2"
+    },
+    {
+      "markdown" : "# Cold start \"fast\" path\n\nProduct · 12 Mar 2026 - 2 Apr 2026 · <https://jira.example.com/browse/T-1?a=b&c=d>\n\nTags: perf, android/ios, Việt\n\n**Problem**\n\nLaunch took **1.8 s** on\nmid-range phones.\n\n- one\n- two\n\n**Why**\n\nUsers in Việt Nam 🇻🇳 open it many times a day.\n\n**Solution**\n\nLazy init, a `tab\there`, a back\\slash, a bell \u0007, a nul-ish \u0001, \b\f\u001b\r  ﻿.\n\n**Difficulties and how they were solved**\n\nProfiling on <b>real</b> devices\n\n| Metric | Before | After | Change | Note |\n|---|---|---|---|---|\n| Cold start | 1.8 s | 0.9 s | -50% | Pixel 7, n=20 |\n| Crash \\| rate |  | ~0.1% |  |  |\n| Requests | 1,200 | 1,350 | +13% |  |\n",
+      "name" : "entry 00000000-0000-4000-8000-0000000000E1"
+    }
+  ],
+  "file" : "{\n  \"boards\" : [\n    {\n      \"createdAt\" : 1780000000001,\n      \"end\" : \"2019-08\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000B1\",\n      \"name\" : \"Company A\",\n      \"start\" : \"2017-07\",\n      \"updatedAt\" : 1780000000002\n    },\n    {\n      \"createdAt\" : 1780000000003,\n      \"id\" : \"00000000-0000-4000-8000-0000000000B2\",\n      \"name\" : \"Zalo / VNG \\\"core\\\"\",\n      \"start\" : \"2019-09\",\n      \"updatedAt\" : 1780000000004\n    },\n    {\n      \"createdAt\" : 1780000000005,\n      \"deletedAt\" : 1780000000009,\n      \"end\" : \"2016-02\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000B3\",\n      \"name\" : \"Gone\",\n      \"start\" : \"2015-01\",\n      \"updatedAt\" : 1780000000009\n    }\n  ],\n  \"entries\" : [\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B2\",\n      \"createdAt\" : 1780000000010,\n      \"date\" : \"2026-03-12\",\n      \"difficulties\" : \"  Profiling on <b>real</b> devices  \",\n      \"endDate\" : \"2026-04-02\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E1\",\n      \"impact\" : \"\",\n      \"link\" : \"https://jira.example.com/browse/T-1?a=b&c=d\",\n      \"metrics\" : [\n        {\n          \"after\" : \"0.9\",\n          \"before\" : \"1.8\",\n          \"id\" : \"00000000-0000-4000-8000-0000000000A1\",\n          \"label\" : \"Cold start\",\n          \"note\" : \"Pixel 7, n=20\",\n          \"unit\" : \"s\"\n        },\n        {\n          \"after\" : \"~0.1%\",\n          \"id\" : \"00000000-0000-4000-8000-0000000000A2\",\n          \"label\" : \"Crash | rate\"\n        },\n        {\n          \"after\" : \"1,350\",\n          \"before\" : \"1,200\",\n          \"id\" : \"00000000-0000-4000-8000-0000000000A3\",\n          \"label\" : \"Requests\",\n          \"unit\" : \" \"\n        }\n      ],\n      \"name\" : \"Cold start \\\"fast\\\" path\",\n      \"problem\" : \"Launch took **1.8 s** on\\nmid-range phones.\\n\\n- one\\n- two\",\n      \"solution\" : \"Lazy init, a `tab\\there`, a back\\\\slash, a bell \\u0007, a nul-ish \\u0001, \\b\\f\\u001b\\r  ﻿.\",\n      \"tags\" : [\n        \"perf\",\n        \"android/ios\",\n        \"Việt\"\n      ],\n      \"type\" : \"product\",\n      \"updatedAt\" : 1780000000011,\n      \"why\" : \"Users in Việt Nam 🇻🇳 open it many times a day.\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B2\",\n      \"createdAt\" : 1780000000012,\n      \"date\" : \"2025-12-31\",\n      \"difficulties\" : \"\",\n      \"endDate\" : \"2026-01-02\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E2\",\n      \"impact\" : \"\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"Fix crash on resume\",\n      \"problem\" : \"NPE\",\n      \"solution\" : \"\",\n      \"tags\" : [\n\n      ],\n      \"type\" : \"bugFix\",\n      \"updatedAt\" : 1780000000013,\n      \"why\" : \"\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B2\",\n      \"createdAt\" : 1780000000014,\n      \"date\" : \"2026-03-12\",\n      \"difficulties\" : \"\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E3\",\n      \"impact\" : \"\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"\",\n      \"problem\" : \"\",\n      \"solution\" : \"\",\n      \"tags\" : [\n\n      ],\n      \"type\" : \"research\",\n      \"updatedAt\" : 1780000000015,\n      \"why\" : \"\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B2\",\n      \"createdAt\" : 1780000000016,\n      \"date\" : \"2026-01-01\",\n      \"deletedAt\" : 1780000000018,\n      \"difficulties\" : \"\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E4\",\n      \"impact\" : \"\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"Deleted task\",\n      \"problem\" : \"\",\n      \"solution\" : \"\",\n      \"tags\" : [\n\n      ],\n      \"type\" : \"dev\",\n      \"updatedAt\" : 1780000000018,\n      \"why\" : \"\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B1\",\n      \"createdAt\" : 1780000000019,\n      \"date\" : \"2018-05-01\",\n      \"difficulties\" : \"\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E5\",\n      \"impact\" : \"Saved [money](https://example.com) and [x](javascript:alert(1)).\",\n      \"link\" : \"jira/T-9\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"Write-up on caching\",\n      \"problem\" : \"\",\n      \"solution\" : \"\",\n      \"tags\" : [\n        \"cache\"\n      ],\n      \"type\" : \"findings\",\n      \"updatedAt\" : 1780000000020,\n      \"why\" : \"\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B1\",\n      \"createdAt\" : 1780000000021,\n      \"date\" : \"2018-06-01\",\n      \"difficulties\" : \"\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E6\",\n      \"impact\" : \"\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"Task 10\",\n      \"problem\" : \"\",\n      \"solution\" : \"\",\n      \"tags\" : [\n\n      ],\n      \"type\" : \"dev\",\n      \"updatedAt\" : 1780000000022,\n      \"why\" : \"\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B1\",\n      \"createdAt\" : 1780000000023,\n      \"date\" : \"2018-06-01\",\n      \"difficulties\" : \"\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E7\",\n      \"impact\" : \"\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"Task 2\",\n      \"problem\" : \"\",\n      \"solution\" : \"\",\n      \"tags\" : [\n\n      ],\n      \"type\" : \"dev\",\n      \"updatedAt\" : 1780000000024,\n      \"why\" : \"\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B1\",\n      \"createdAt\" : 1780000000025,\n      \"date\" : \"2018-06-01\",\n      \"difficulties\" : \"\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E8\",\n      \"impact\" : \"\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"apple pie\",\n      \"problem\" : \"\",\n      \"solution\" : \"\",\n      \"tags\" : [\n        \"Đà Lạt\"\n      ],\n      \"type\" : \"dev\",\n      \"updatedAt\" : 1780000000026,\n      \"why\" : \"\"\n    },\n    {\n      \"boardId\" : \"00000000-0000-4000-8000-0000000000B3\",\n      \"createdAt\" : 1780000000027,\n      \"date\" : \"2015-06-01\",\n      \"difficulties\" : \"\",\n      \"id\" : \"00000000-0000-4000-8000-0000000000E9\",\n      \"impact\" : \"\",\n      \"metrics\" : [\n\n      ],\n      \"name\" : \"On a deleted board\",\n      \"problem\" : \"\",\n      \"solution\" : \"\",\n      \"tags\" : [\n\n      ],\n      \"type\" : \"dev\",\n      \"updatedAt\" : 1780000000028,\n      \"why\" : \"\"\n    }\n  ],\n  \"format\" : \"tenure\",\n  \"version\" : 1\n}",
+  "fileNames" : [
+    {
+      "fileName" : "Zalo",
+      "title" : "Zalo"
+    },
+    {
+      "fileName" : "a-b-c-",
+      "title" : "a/b:c?"
+    },
+    {
+      "fileName" : "Tenure",
+      "title" : "  "
+    },
+    {
+      "fileName" : "Tenure 2026",
+      "title" : "Tenure 2026"
+    },
+    {
+      "fileName" : "line-break",
+      "title" : "line\nbreak"
+    }
+  ],
+  "metrics" : [
+    {
+      "after" : "10",
+      "afterWithUnit" : "10 ms",
+      "before" : "18",
+      "changeText" : "-44%",
+      "unit" : "ms"
+    },
+    {
+      "after" : "0.9",
+      "afterWithUnit" : "0.9 s",
+      "before" : "1.8",
+      "changeText" : "-50%",
+      "unit" : "s"
+    },
+    {
+      "after" : "112",
+      "afterWithUnit" : "112",
+      "before" : "100",
+      "changeText" : "+12%"
+    },
+    {
+      "after" : "201",
+      "afterWithUnit" : "201",
+      "before" : "200",
+      "changeText" : "+0.5%"
+    },
+    {
+      "after" : "1001",
+      "afterWithUnit" : "1001",
+      "before" : "1000",
+      "changeText" : "+0.1%"
+    },
+    {
+      "after" : "5",
+      "afterWithUnit" : "5",
+      "before" : "0"
+    },
+    {
+      "after" : "5",
+      "afterWithUnit" : "5"
+    },
+    {
+      "after" : "10",
+      "afterWithUnit" : "10",
+      "before" : "18ms"
+    },
+    {
+      "after" : "1,350",
+      "afterWithUnit" : "1,350",
+      "before" : "1,200",
+      "changeText" : "+13%",
+      "unit" : " "
+    },
+    {
+      "after" : " 9 ",
+      "afterWithUnit" : " 9 ",
+      "before" : " 18 ",
+      "changeText" : "-50%"
+    },
+    {
+      "after" : "-2",
+      "afterWithUnit" : "-2",
+      "before" : "-4",
+      "changeText" : "+50%"
+    },
+    {
+      "after" : "3",
+      "afterWithUnit" : "3",
+      "before" : "3",
+      "changeText" : "0%"
+    },
+    {
+      "after" : "1.0001",
+      "afterWithUnit" : "1.0001",
+      "before" : "1",
+      "changeText" : "0%"
+    },
+    {
+      "after" : "p90",
+      "afterWithUnit" : "p90",
+      "before" : "p50"
+    }
+  ],
+  "years" : [
+    2026,
+    2025,
+    2018,
+    2015
+  ]
+}

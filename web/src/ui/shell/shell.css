@@ -1,0 +1,220 @@
+/* The frame around everything: sign-in, the top bar, the three panes, and the phone layout. */
+
+.sign-in {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.sign-in-card {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.sign-in-card h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.sign-in-card p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.app-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sign-in-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.sign-in-note {
+  font-size: 13px;
+}
+
+.sign-in-error {
+  color: var(--danger) !important;
+  font-size: 13px;
+}
+
+.sign-in-fine {
+  font-size: 12px;
+  color: var(--muted) !important;
+}
+
+.shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 12px 0 16px;
+  background: var(--sidebar);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+
+.topbar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.topbar-title .app-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: 14px;
+}
+
+.sync-status {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.sync-status.is-unsaved {
+  color: var(--warning);
+}
+
+.panes {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr) minmax(0, 1.1fr);
+}
+
+.panes.no-detail {
+  grid-template-columns: 250px minmax(0, 1fr);
+}
+
+.pane-sidebar {
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.pane-main {
+  overflow-y: auto;
+  padding: 20px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pane-detail {
+  overflow-y: auto;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+}
+
+.board-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.board-header h1 {
+  margin: 0;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.board-header-text {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.board-header-text span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.board-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.only-phone {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .panes {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .panes:not(.no-detail) .pane-main {
+    display: none;
+  }
+
+  .pane-detail {
+    border-left: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .only-phone {
+    display: inline-flex;
+  }
+
+  .panes,
+  .panes.no-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pane-sidebar {
+    position: fixed;
+    inset: 52px 0 0 0;
+    z-index: 10;
+    display: none;
+  }
+
+  .pane-sidebar.is-open {
+    display: block;
+  }
+
+  .pane-main {
+    padding: 16px 16px 40px;
+  }
+
+  .sync-status {
+    max-width: 40vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

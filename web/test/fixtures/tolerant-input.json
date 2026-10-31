@@ -1,0 +1,25 @@
+{
+  "format": "tenure",
+  "version": 1,
+  "extra": {"from": "a newer build"},
+  "boards": [
+    {"id": "00000000-0000-4000-8000-0000000000c1", "updatedAt": 1780000000000, "name": 5,
+     "start": "2017-07", "end": "2019-13", "createdAt": "yesterday", "deletedAt": null, "color": "red"},
+    {"id": "00000000-0000-4000-8000-0000000000C2", "updatedAt": 1780000000001, "start": "2018-1",
+     "end": "2020-02", "deletedAt": 1780000000001}
+  ],
+  "entries": [
+    {"id": "00000000-0000-4000-8000-0000000000d1", "boardId": "00000000-0000-4000-8000-0000000000c1",
+     "updatedAt": 1780000000002, "name": null, "link": 42, "type": 7, "date": "2026-02-30",
+     "endDate": "2026-1-5", "tags": ["a", 1], "problem": ["x"], "why": "ok", "solution": true,
+     "metrics": [{"id": "00000000-0000-4000-8000-0000000000a9", "label": 3, "after": 3, "before": "1"}],
+     "createdAt": 1780000000000.0},
+    {"id": "00000000-0000-4000-8000-0000000000d2", "boardId": "00000000-0000-4000-8000-0000000000c1",
+     "updatedAt": 1780000000003, "name": "Bad metrics", "type": "bugFix", "date": "2026-03-01",
+     "endDate": "nope", "tags": [], "metrics": [{"id": "00000000-0000-4000-8000-0000000000aa",
+     "after": "1"}, "garbage"], "unknown": 1},
+    {"id": "00000000-0000-4000-8000-0000000000d3", "boardId": "00000000-0000-4000-8000-0000000000c2",
+     "updatedAt": 1780000000004, "date": "2026-03-01", "endDate": null, "link": "",
+     "metrics": [{"id": "00000000-0000-4000-8000-0000000000ab", "label": "x", "after": "1", "unit": null, "note": "n"}]}
+  ]
+}
