@@ -21,6 +21,9 @@ How a task gets from the editor into `tenure.json` on this Mac and in Google Dri
 - **Plain JSON, no encryption.** `tenure.json` is pretty-printed with sorted keys, so it reads
   well, diffs cleanly, and survives a hand edit.
 
+The web app in `web/` works on the same file in Drive with ports of the same rules (codec,
+merge, sync), tested against fixtures the Swift code writes; see [WEB.md](WEB.md).
+
 ## Modules
 
 | Module | Role |

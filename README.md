@@ -11,8 +11,11 @@ A macOS app for keeping a record of what you did in your career.
 - **Grid or list**, sorted by date or name, filtered by board, kind, and text. Cmd+K finds any
   task.
 - **Google Drive sync** of one plain JSON file. No encryption, no server.
+- **On the web** at https://lklong1551019.github.io/Tenure/app/: the same file, read and
+  edited in the browser, on any computer or phone.
 
-Swift 6, SwiftUI, macOS 26. No third-party dependencies.
+Swift 6, SwiftUI, macOS 26. No third-party dependencies. The web app is React, TypeScript,
+and Vite ([docs/WEB.md](docs/WEB.md)).
 
 ## Setup
 
@@ -36,6 +39,7 @@ or imports a copy.
 ## Docs
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): modules, data model, merge, and sync
-- [docs/GOOGLE-SETUP.md](docs/GOOGLE-SETUP.md): Google Cloud project and OAuth client
+- [docs/GOOGLE-SETUP.md](docs/GOOGLE-SETUP.md): Google Cloud project and OAuth clients
+- [docs/WEB.md](docs/WEB.md): the web app, and how it stays in step with the Mac
 - [docs/RELEASE.md](docs/RELEASE.md): cutting a release, the release history page, and installing
 - [AGENTS.md](AGENTS.md): working notes for changing this repository

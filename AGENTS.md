@@ -13,7 +13,8 @@ in-flight state from a previous session and is not tracked in git.
 
 A macOS app that records a career: boards per company and time span, tasks with a link, a
 kind, a five-part story, and before/after metrics. Grid or list, sort and filter, Cmd+K. One
-plain JSON file, synced to Google Drive. Swift 6, SwiftUI, macOS 26, no server. The
+plain JSON file, synced to Google Drive. Swift 6, SwiftUI, macOS 26, no server. A web app in
+`web/` (React, TypeScript, Vite, on GitHub Pages) reads and edits the same file. The
 architecture follows Credentials Manager (`../Credentials Manager`), minus encryption, lock,
 and onboarding.
 
@@ -37,6 +38,13 @@ never write the file another way.
 depend on `Domain` and never on each other. `App` is the only module that sees all.
 `scripts/check-deps.sh` enforces this.
 
+**The web follows the Swift rules.** `web/src/domain` and `web/src/data` port the codec,
+merge, fingerprint, store, sync, query, search, and export. Change a rule in Swift and change
+the web the same way, then regenerate the fixtures
+(`TENURE_WRITE_FIXTURES=1 swift test --package-path Packages --filter WebFixture`); each side's
+tests fail until both agree. The web never creates the Drive file and never stores tokens or
+data in the browser. See [docs/WEB.md](docs/WEB.md).
+
 **No realistic secret values in the repository.** Examples and placeholders use the literal
 `temp`. `Config/Secrets.xcconfig` and `Config/Local.xcconfig` are ignored and blocked by the
 pre-commit hook.
@@ -51,13 +59,14 @@ pre-commit hook.
 | `Packages/Data/DriveSync` | Google OAuth, Drive REST v3 client |
 | `Packages/Presentation/DesignSystem` | Tokens and shared components |
 | `Packages/Presentation/Features/*` | Board, EntryEditor, Search, Settings |
-| `Packages/IntegrationTests` | Test-only: sync against real files |
+| `Packages/IntegrationTests` | Test-only: sync against real files; fixtures for the web app |
 | `Tenure.xcodeproj` | App target only; build settings live in `Config/Base.xcconfig` |
 | `App/Sources` | Composition root (`AppDependencies`), `AppModel`, scenes |
 | `Config/` | `Base.xcconfig` (tracked); `Local.xcconfig` and `Secrets.xcconfig` (ignored) |
 | `site/` | Home page and privacy policy for the Google OAuth consent screen, release history (GitHub Pages) |
-| `.github/` | Pages workflow (actions pinned to commits) and Dependabot for those actions |
-| `docs/` | Architecture, Google setup, releasing |
+| `web/` | The web app (React, TypeScript, Vite); built into `site/app/` by the Pages workflow |
+| `.github/` | Pages workflow (actions pinned to commits) and Dependabot for those actions and `web/` |
+| `docs/` | Architecture, Google setup, the web app, releasing |
 | `scripts/` | Dependency check, verify, git hooks, install, release, app icon renderer |
 
 Every module directory carries a `README.md` (Scope, Owns, Must not, Depends on, Tests). The
@@ -72,6 +81,13 @@ scripts/check-deps.sh
 xcrun swift-format lint --strict --recursive Packages App/Sources scripts
 xcodebuild -project Tenure.xcodeproj -scheme Tenure \
   -derivedDataPath .build/xcode -allowProvisioningUpdates build
+```
+
+The web app, from `web/` (`npm ci` once):
+
+```bash
+npm run check      # typecheck, ESLint, Prettier, Vitest
+npm run dev        # http://localhost:5173/Tenure/app/?demo
 ```
 
 Once per clone:
@@ -102,3 +118,5 @@ to do when it fails: [docs/RELEASE.md](docs/RELEASE.md).
 - Swift Testing (`@Suite`, `@Test`), no XCTest. Fakes live in each test target's `Fakes.swift`.
 - Features talk to the app through a `*Actions` protocol and never see a port.
 - UI copy is sentence case; plain ASCII hyphens, no em dashes.
+- Web: Vitest, Prettier (no semicolons, single quotes, 100 columns), one CSS file per UI area
+  with the tokens of `Theme.swift` in `web/src/ui/theme.css`.
