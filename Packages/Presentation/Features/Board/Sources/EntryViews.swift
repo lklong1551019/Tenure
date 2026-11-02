@@ -63,13 +63,22 @@ struct EntryCard: View {
                 .padding(.vertical, 7)
                 .background(Palette.sunken, in: RoundedRectangle(cornerRadius: Metrics.controlRadius))
             }
-            if boardName != nil || entry.link?.isEmpty == false || !entry.tags.isEmpty {
+            if let link = entry.link, !link.isEmpty {
+                // Cut in the middle, as in the list, so a ticket key at the end stays readable.
+                Label {
+                    Text(link).truncationMode(.middle)
+                } icon: {
+                    Image(systemName: "link")
+                }
+                .appFont(12)
+                .foregroundStyle(Palette.accentInk)
+                .lineLimit(1)
+                .help(link)
+            }
+            if boardName != nil || !entry.tags.isEmpty {
                 HStack(spacing: 8) {
                     if let boardName {
                         Label(boardName, systemImage: "building.2")
-                    }
-                    if entry.link?.isEmpty == false {
-                        Image(systemName: "link").accessibilityLabel("Has link")
                     }
                     ForEach(entry.tags.prefix(3), id: \.self) { tag in
                         Text("#\(tag)")

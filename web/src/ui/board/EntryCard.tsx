@@ -87,21 +87,46 @@ export function EntryRow({ entry, to, isSelected, boardName }: EntryViewProps) {
   )
 }
 
-function EntryFooter({ entry, boardName }: { entry: Entry; boardName?: string }) {
-  const hasLink = (entry.link ?? '') !== ''
-  if (!boardName && !hasLink && entry.tags.length === 0) return null
+/**
+ * A link split so its middle gives way, as the Mac card's does: the head shrinks to an
+ * ellipsis, the tail (the last path part, often a ticket key) stays whole.
+ */
+export function linkParts(link: string): [string, string] {
+  const cut = Math.max(link.length - 16, link.lastIndexOf('/', link.length - 2) + 1)
+  return [link.slice(0, cut), link.slice(cut)]
+}
+
+/** The link on a line of its own, in the accent color, so it never reads as a tag. */
+function EntryLink({ link }: { link: string }) {
+  const [head, tail] = linkParts(link)
   return (
-    <div className="entry-footer">
-      {boardName && (
-        <span className="entry-footer-board">
-          <Icon name="building" size={12} />
-          {boardName}
-        </span>
-      )}
-      {hasLink && <Icon name="link" size={12} label="Has link" />}
-      {entry.tags.slice(0, 3).map((tag) => (
-        <span key={tag}>#{tag}</span>
-      ))}
+    <div className="entry-link" title={link}>
+      <Icon name="link" size={12} />
+      <span className="entry-link-text">
+        <span className="entry-link-head">{head}</span>
+        <span className="entry-link-tail">{tail}</span>
+      </span>
     </div>
+  )
+}
+
+function EntryFooter({ entry, boardName }: { entry: Entry; boardName?: string }) {
+  return (
+    <>
+      {entry.link && <EntryLink link={entry.link} />}
+      {(boardName || entry.tags.length > 0) && (
+        <div className="entry-footer">
+          {boardName && (
+            <span className="entry-footer-board">
+              <Icon name="building" size={12} />
+              {boardName}
+            </span>
+          )}
+          {entry.tags.slice(0, 3).map((tag) => (
+            <span key={tag}>#{tag}</span>
+          ))}
+        </div>
+      )}
+    </>
   )
 }
