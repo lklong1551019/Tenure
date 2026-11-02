@@ -6,6 +6,9 @@ Layer: presentation. SPM target: `BoardFeature`.
 
 The main window: board sidebar, tasks as a grid or a table beside the selected task's story
 (40/60, draggable, double-click the divider to reset), the board sheet, and Markdown export.
+A card shows its link on a line of its own in the accent color, cut in the middle, with the
+board and tags below. The table's column widths, order, and hidden columns are kept in
+UserDefaults (`tableColumns`); Name is the widest column by default and cannot be hidden.
 
 ## Owns
 

@@ -16,13 +16,22 @@ public struct BoardView: View {
     /// The ratio while the split handle is dragged; saved to `listRatio` when the drag ends,
     /// so the drag does not write UserDefaults on every mouse move.
     @State private var dragRatio: Double?
+    /// Widths, order, and hidden columns of the table, saved under `tableColumnsKey`.
+    @State private var tableColumns: TableColumnCustomization<Entry>
 
     static let defaultListRatio = 0.4
     static let minimumListWidth: CGFloat = 320
     static let minimumDetailWidth: CGFloat = 360
+    static let tableColumnsKey = "tableColumns"
 
     public init(model: BoardViewModel) {
         self.model = model
+        // Read here rather than on appear, so the table never shows the default widths first.
+        let saved = UserDefaults.standard.data(forKey: Self.tableColumnsKey)
+        _tableColumns = State(
+            initialValue: saved.flatMap { try? JSONDecoder().decode(TableColumnCustomization<Entry>.self, from: $0) }
+                ?? TableColumnCustomization()
+        )
     }
 
     public var body: some View {
@@ -399,26 +408,42 @@ public struct BoardView: View {
     }
 
     private var table: some View {
-        Table(model.visibleEntries, selection: $model.selectedEntryId, sortOrder: sortOrder) {
+        Table(
+            model.visibleEntries,
+            selection: $model.selectedEntryId,
+            sortOrder: sortOrder,
+            columnCustomization: $tableColumns
+        ) {
             TableColumn("Kind") { entry in
                 Badge(entry.type.title, tint: entry.type.tint)
             }
             .width(min: 70, ideal: 80, max: 100)
+            .customizationID("kind")
+            // The widest column by default; the others give way to it.
             TableColumn("Name", value: \Entry.name, comparator: .localizedStandard) { entry in
                 Text(entry.displayName)
             }
+            .width(min: 200, ideal: 360)
+            .customizationID("name")
+            .disabledCustomizationBehavior(.visibility)
             TableColumn("Board") { entry in
                 Text(model.boardName(of: entry)).foregroundStyle(Palette.secondaryInk)
             }
-            .width(min: 80, ideal: 120)
+            .width(min: 60, ideal: 80, max: 160)
+            .customizationID("board")
             TableColumn("Link") { entry in
                 Text(entry.link ?? "").foregroundStyle(Palette.accentInk).lineLimit(1).truncationMode(.middle)
             }
-            .width(min: 60, ideal: 120)
+            .width(min: 80, ideal: 150, max: 320)
+            .customizationID("link")
             TableColumn("Date", value: \Entry.date) { entry in
                 Text(entry.date.short).monospacedDigit()
             }
             .width(min: 90, ideal: 100)
+            .customizationID("date")
+        }
+        .onChange(of: tableColumns) { _, columns in
+            UserDefaults.standard.set(try? JSONEncoder().encode(columns), forKey: Self.tableColumnsKey)
         }
         .contextMenu(forSelectionType: UUID.self) { ids in
             if let id = ids.first, let entry = model.visibleEntries.first(where: { $0.id == id }) {
