@@ -1,6 +1,21 @@
 {
   "releases" : [
     {
+      "code" : "26110107",
+      "date" : "2026-11-02",
+      "fixed" : [
+
+      ],
+      "improved" : [
+        "Show a card's link on its own line, apart from the tags",
+        "Widen the Name column and remember table column widths"
+      ],
+      "new" : [
+
+      ],
+      "version" : "26.11.01"
+    },
+    {
       "code" : "26110105",
       "date" : "2026-10-31",
       "fixed" : [
