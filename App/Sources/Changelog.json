@@ -1,6 +1,20 @@
 {
   "releases" : [
     {
+      "code" : "26110109",
+      "date" : "2026-11-18",
+      "fixed" : [
+
+      ],
+      "improved" : [
+        "Group tasks by month and trim repeated details from cards"
+      ],
+      "new" : [
+
+      ],
+      "version" : "26.11.01"
+    },
+    {
       "code" : "26110107",
       "date" : "2026-11-02",
       "fixed" : [
