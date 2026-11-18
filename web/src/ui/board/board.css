@@ -266,9 +266,9 @@
   overflow: hidden;
 }
 
-.entry-excerpt.is-empty {
-  font-style: italic;
-  color: var(--muted);
+.entry-card.is-draft:not(.is-selected) {
+  border-style: dashed;
+  border-color: var(--border-strong);
 }
 
 .entry-metric {
@@ -297,6 +297,7 @@
 }
 
 .entry-footer {
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -306,30 +307,47 @@
   overflow: hidden;
 }
 
+.entry-metric + .entry-footer {
+  margin-top: 0;
+}
+
 .entry-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-width: 0;
   font-size: 12px;
   color: var(--accent-ink);
   white-space: nowrap;
 }
 
-.entry-link > svg,
-.entry-link-tail {
-  flex-shrink: 0;
+.entry-no-story {
+  margin-left: auto;
 }
 
-.entry-link-text {
+/* Sticks to the very top of the scrolling pane: `top` cancels `.pane-main`'s 20px top
+   padding, which would otherwise leave a strip of cards showing above the heading. */
+.month-heading {
+  position: sticky;
+  top: -20px;
+  z-index: 1;
   display: flex;
-  min-width: 0;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 0 8px;
+  background: var(--ground);
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.entry-link-head {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.month-heading span {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.month-group + .month-group {
+  margin-top: 16px;
 }
 
 .entry-footer-board {

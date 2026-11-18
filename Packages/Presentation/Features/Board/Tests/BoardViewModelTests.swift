@@ -256,4 +256,53 @@ struct BoardViewModelTests {
         #expect(model.selection == .board(a.id))
         #expect(model.toast == "Imported 2 tasks")
     }
+    @Test func groupsByStartMonthWhenSortedByDate() {
+        let model = model()
+        model.update(
+            LedgerSnapshot(
+                boards: [a, b],
+                entries: model.snapshot.entries + [
+                    Entry(
+                        boardId: b.id,
+                        name: "Later in June",
+                        type: .dev,
+                        date: DayDate(year: 2025, month: 6, day: 28),
+                        createdAt: Timestamp(millis: 0)
+                    )
+                ]
+            )
+        )
+        #expect(
+            model.visibleGroups.map(\.month) == [
+                YearMonth(year: 2025, month: 11), YearMonth(year: 2025, month: 6), YearMonth(year: 2018, month: 5),
+            ]
+        )
+        #expect(model.visibleGroups[1].entries.map(\.name) == ["Later in June", "Onboarding"])
+        model.sort = .nameAscending
+        #expect(model.visibleGroups.count == 1)
+        #expect(model.visibleGroups[0].month == nil)
+        #expect(model.visibleGroups[0].entries == model.visibleEntries)
+        model.text = "nothing matches this"
+        #expect(model.visibleGroups.isEmpty)
+    }
+
+    @Test func boardNamesShowOnlyWhenTheyTellBoardsApart() {
+        let model = model()
+        #expect(model.showsBoardNames)
+        model.selection = .board(a.id)
+        #expect(!model.showsBoardNames)
+        model.update(LedgerSnapshot(boards: [b], entries: []))
+        #expect(model.selection == .all)
+        #expect(!model.showsBoardNames)
+    }
+
+    @Test func linkLabelShowsTheTicketKeyOrTheHost() {
+        #expect(LinkLabel.text("https://jira.example.com/browse/PLA-6165") == "PLA-6165")
+        #expect(LinkLabel.text(" https://jira.example.com/browse/PLA-6165?focused=1#c2 ") == "PLA-6165")
+        #expect(LinkLabel.text("jira/T-9") == "T-9")
+        #expect(LinkLabel.text("https://github.com/owner/repo/pull/12") == "github.com · 12")
+        #expect(LinkLabel.text("https://www.example.com/blog/post-12/") == "example.com · post-12")
+        #expect(LinkLabel.text("https://example.com") == "example.com")
+        #expect(LinkLabel.text("example.com/notes") == "example.com/notes")
+    }
 }

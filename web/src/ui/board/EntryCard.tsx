@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
+import type { YearMonth } from '../../domain/calendar'
 import { type Entry, entryTypeTitle } from '../../domain/model'
-import { displayName, metricChangeText, story, withUnit } from '../../domain/story'
+import { counted, displayName, metricChangeText, story, withUnit } from '../../domain/story'
 import { Badge } from '../components/Badge'
 import { Icon } from '../components/Icon'
 import { parseInline, plainText } from '../components/inlineMarkdown'
 import { ChangePill } from '../components/MetricTile'
-import { kindTint, shortDay } from '../format'
+import { dayMonth, kindTint, linkLabel, longMonth, shortDay } from '../format'
 import './board.css'
 
 /** First story part as one plain line. */
@@ -23,33 +24,37 @@ interface EntryViewProps {
   entry: Entry
   to: string
   isSelected: boolean
-  /** Shown when the view spans every board. */
+  /** Shown when the view spans every board and there is more than one. */
   boardName?: string
   /** The year the view is filtered to: a task that began earlier says so. */
   filterYear?: number
+  /** Under a month heading the date drops its year ("12 Mar"). */
+  underMonthHeading?: boolean
 }
 
-/** One task in the grid: kind, date, name, the start of its story, and the first metric. */
-export function EntryCard({ entry, to, isSelected, boardName, filterYear }: EntryViewProps) {
+/**
+ * One task in the grid: kind, date, name, the start of its story, and the first metric. A
+ * task without a story has a dashed border and says so in its last line.
+ */
+export function EntryCard(props: EntryViewProps) {
+  const { entry, to, isSelected, boardName, filterYear, underMonthHeading } = props
   const text = excerpt(entry)
   const metric = entry.metrics[0]
   const change = metric && metricChangeText(metric)
   return (
     <Link
       to={to}
-      className={`entry-card card${isSelected ? ' is-selected' : ''}`}
+      className={`entry-card card${isSelected ? ' is-selected' : ''}${text ? '' : ' is-draft'}`}
       aria-current={isSelected}
     >
       <div className="entry-card-top">
         <Badge text={entryTypeTitle(entry.type)} tint={kindTint(entry.type)} />
-        <span className="entry-date">{shortDay(entry.date)}</span>
+        <span className="entry-date">
+          {underMonthHeading ? dayMonth(entry.date) : shortDay(entry.date)}
+        </span>
       </div>
       <h3 className="entry-name">{displayName(entry)}</h3>
-      {text ? (
-        <p className="entry-excerpt">{text}</p>
-      ) : (
-        <p className="entry-excerpt is-empty">No write-up yet.</p>
-      )}
+      {text && <p className="entry-excerpt">{text}</p>}
       {filterYear !== undefined && entry.date.year < filterYear && (
         <Badge text={`Started in ${entry.date.year}`} tint="amber" />
       )}
@@ -66,7 +71,7 @@ export function EntryCard({ entry, to, isSelected, boardName, filterYear }: Entr
           {change && <ChangePill text={change} />}
         </div>
       )}
-      <EntryFooter entry={entry} boardName={boardName} />
+      <EntryFooter entry={entry} boardName={boardName} hasStory={text !== undefined} />
     </Link>
   )
 }
@@ -82,51 +87,47 @@ export function EntryRow({ entry, to, isSelected, boardName }: EntryViewProps) {
       <Badge text={entryTypeTitle(entry.type)} tint={kindTint(entry.type)} />
       <span className="entry-row-name">{displayName(entry)}</span>
       {boardName && <span className="entry-row-board">{boardName}</span>}
+      {entry.link && (
+        <span className="entry-link" title={entry.link}>
+          {linkLabel(entry.link)}
+        </span>
+      )}
       <span className="entry-date">{shortDay(entry.date)}</span>
     </Link>
   )
 }
 
-/**
- * A link split so its middle gives way, as the Mac card's does: the head shrinks to an
- * ellipsis, the tail (the last path part, often a ticket key) stays whole.
- */
-export function linkParts(link: string): [string, string] {
-  const cut = Math.max(link.length - 16, link.lastIndexOf('/', link.length - 2) + 1)
-  return [link.slice(0, cut), link.slice(cut)]
-}
-
-/** The link on a line of its own, in the accent color, so it never reads as a tag. */
-function EntryLink({ link }: { link: string }) {
-  const [head, tail] = linkParts(link)
+/** The link as a ticket key in the accent color, the tags, the board, and "No story". */
+function EntryFooter(props: { entry: Entry; boardName?: string; hasStory: boolean }) {
+  const { entry, boardName, hasStory } = props
+  if (!entry.link && !boardName && entry.tags.length === 0 && hasStory) return null
   return (
-    <div className="entry-link" title={link}>
-      <Icon name="link" size={12} />
-      <span className="entry-link-text">
-        <span className="entry-link-head">{head}</span>
-        <span className="entry-link-tail">{tail}</span>
-      </span>
+    <div className="entry-footer">
+      {entry.link && (
+        <span className="entry-link" title={entry.link}>
+          <Icon name="link" size={12} />
+          {linkLabel(entry.link)}
+        </span>
+      )}
+      {boardName && (
+        <span className="entry-footer-board">
+          <Icon name="building" size={12} />
+          {boardName}
+        </span>
+      )}
+      {entry.tags.slice(0, 3).map((tag) => (
+        <span key={tag}>#{tag}</span>
+      ))}
+      {!hasStory && <span className="entry-no-story">No story</span>}
     </div>
   )
 }
 
-function EntryFooter({ entry, boardName }: { entry: Entry; boardName?: string }) {
+/** "October 2026  6 tasks": the heading over one month's tasks in the grid and the list. */
+export function MonthHeading({ month, count }: { month: YearMonth; count: number }) {
   return (
-    <>
-      {entry.link && <EntryLink link={entry.link} />}
-      {(boardName || entry.tags.length > 0) && (
-        <div className="entry-footer">
-          {boardName && (
-            <span className="entry-footer-board">
-              <Icon name="building" size={12} />
-              {boardName}
-            </span>
-          )}
-          {entry.tags.slice(0, 3).map((tag) => (
-            <span key={tag}>#{tag}</span>
-          ))}
-        </div>
-      )}
-    </>
+    <h2 className="month-heading">
+      {longMonth(month)} <span>{counted(count, 'task')}</span>
+    </h2>
   )
 }

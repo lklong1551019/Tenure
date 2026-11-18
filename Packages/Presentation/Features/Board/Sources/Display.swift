@@ -11,12 +11,42 @@ extension YearMonth {
     var short: String {
         date().formatted(.dateTime.month(.abbreviated).year())
     }
+
+    /// "July 2017", for a month heading.
+    var long: String {
+        date().formatted(.dateTime.month(.wide).year())
+    }
 }
 
 extension DayDate {
     /// "12 Mar 2026"
     var short: String {
         date().formatted(.dateTime.day().month(.abbreviated).year())
+    }
+
+    /// "12 Mar", under a heading that names the month and year.
+    var dayMonth: String {
+        date().formatted(.dateTime.day().month(.abbreviated))
+    }
+
+    var yearMonth: YearMonth { YearMonth(year: year, month: month) }
+}
+
+/// A task's link as a card or the list shows it: the ticket key when the link ends in one
+/// ("PLA-6165", upper case), else the host and the last path part ("github.com · 12"), else the host.
+/// The web's `linkLabel` follows the same rule.
+enum LinkLabel {
+    static func text(_ link: String) -> String {
+        let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
+        let withoutQuery = trimmed.prefix { $0 != "?" && $0 != "#" }
+        let schemeEnd = withoutQuery.range(of: "://")
+        let rest = schemeEnd.map { withoutQuery[$0.upperBound...] } ?? withoutQuery[...]
+        let parts = rest.split(separator: "/").map(String.init)
+        guard let last = parts.last else { return trimmed }
+        if last.wholeMatch(of: /[A-Z][A-Z0-9]*-[0-9]+/) != nil { return last }
+        guard schemeEnd != nil, let host = parts.first else { return trimmed }
+        let shortHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+        return parts.count > 1 ? "\(shortHost) · \(last)" : shortHost
     }
 }
 

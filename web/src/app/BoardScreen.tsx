@@ -6,7 +6,8 @@ import { exportEntry } from '../domain/markdownExport'
 import { type Board, type Entry, knownEntryTypes, liveBoards, liveEntries } from '../domain/model'
 import { applyQuery, type EntrySort, entrySorts, yearCounts } from '../domain/query'
 import { boardPeriod, counted } from '../domain/story'
-import { EntryCard, EntryRow } from '../ui/board/EntryCard'
+import { EntryCard, EntryRow, MonthHeading } from '../ui/board/EntryCard'
+import { entryGroups } from '../ui/board/groups'
 import { Sidebar } from '../ui/board/Sidebar'
 import { type Layout, Toolbar } from '../ui/board/Toolbar'
 import { Icon } from '../ui/components/Icon'
@@ -51,7 +52,10 @@ export function BoardScreen(props: {
   const scoped = board ? entries.filter((entry) => entry.boardId === board.id) : entries
   const shown = applyQuery({ boardId: board?.id, types: kinds, year, text, sort }, entries)
   const selected = entries.find((entry) => entry.id === entryId)
+  const groups = entryGroups(shown, sort)
   const boardName = (id: string) => boards.find((item) => item.id === id)?.name ?? ''
+  // A card or row names its board only on All boards, and only when there is more than one.
+  const listedBoardName = (id: string) => (board || boards.length < 2 ? undefined : boardName(id))
   const counts = useMemo(() => {
     const map = new Map<string, number>()
     for (const entry of entries) map.set(entry.boardId, (map.get(entry.boardId) ?? 0) + 1)
@@ -182,29 +186,42 @@ export function BoardScreen(props: {
           </p>
         ) : shown.length === 0 ? (
           <p className="empty">{scoped.length === 0 ? 'No tasks yet.' : 'No tasks match.'}</p>
-        ) : layout === 'grid' ? (
-          <div className="entry-grid">
-            {shown.map((entry) => (
-              <EntryCard
-                key={entry.id}
-                entry={entry}
-                to={taskPath(entry)}
-                isSelected={entry.id === entryId}
-                boardName={board ? undefined : boardName(entry.boardId)}
-                filterYear={year}
-              />
-            ))}
-          </div>
         ) : (
-          <div className="entry-list">
-            {shown.map((entry) => (
-              <EntryRow
-                key={entry.id}
-                entry={entry}
-                to={taskPath(entry)}
-                isSelected={entry.id === entryId}
-                boardName={board ? undefined : boardName(entry.boardId)}
-              />
+          <div>
+            {groups.map((group) => (
+              <section
+                key={group.month ? `${group.month.year}-${group.month.month}` : 'all'}
+                className="month-group"
+              >
+                {group.month && <MonthHeading month={group.month} count={group.entries.length} />}
+                {layout === 'grid' ? (
+                  <div className="entry-grid">
+                    {group.entries.map((entry) => (
+                      <EntryCard
+                        key={entry.id}
+                        entry={entry}
+                        to={taskPath(entry)}
+                        isSelected={entry.id === entryId}
+                        boardName={listedBoardName(entry.boardId)}
+                        filterYear={year}
+                        underMonthHeading={group.month !== undefined}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="entry-list">
+                    {group.entries.map((entry) => (
+                      <EntryRow
+                        key={entry.id}
+                        entry={entry}
+                        to={taskPath(entry)}
+                        isSelected={entry.id === entryId}
+                        boardName={listedBoardName(entry.boardId)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
             ))}
           </div>
         )}

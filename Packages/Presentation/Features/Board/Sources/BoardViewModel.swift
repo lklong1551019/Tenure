@@ -32,6 +32,34 @@ public struct YearCount: Hashable, Sendable {
     public let count: Int
 }
 
+/// Tasks under one heading in the grid or table: the month they start in, in the order shown.
+public struct EntryGroup: Identifiable, Hashable, Sendable {
+    /// Nil when the tasks are sorted by name: the group has no heading.
+    public let month: YearMonth?
+    public fileprivate(set) var entries: [Entry]
+
+    public var id: String { month?.description ?? "all" }
+
+    /// Consecutive tasks that start in the same month share a group, so date order is kept.
+    static func groups(of entries: [Entry], sort: EntrySort) -> [EntryGroup] {
+        guard !entries.isEmpty else { return [] }
+        switch sort {
+        case .nameAscending, .nameDescending:
+            return [EntryGroup(month: nil, entries: entries)]
+        case .newest, .oldest:
+            var groups: [EntryGroup] = []
+            for entry in entries {
+                if groups.last?.month == entry.date.yearMonth {
+                    groups[groups.count - 1].entries.append(entry)
+                } else {
+                    groups.append(EntryGroup(month: entry.date.yearMonth, entries: [entry]))
+                }
+            }
+            return groups
+        }
+    }
+}
+
 public enum BoardLayout: String, CaseIterable, Sendable {
     case grid
     case list
@@ -144,6 +172,9 @@ public final class BoardViewModel {
     public private(set) var liveEntries: [Entry] = []
     /// What the grid or table shows: the board, kinds, year, text filter, and sort applied.
     public private(set) var visibleEntries: [Entry] = []
+    /// `visibleEntries` under month headings when sorted by date; one group without a heading
+    /// when sorted by name.
+    public private(set) var visibleGroups: [EntryGroup] = []
     /// Kinds to offer as filter chips: the known ones, then any others found in the data.
     public private(set) var availableTypes = EntryType.known
     /// Years with tasks on the selected board (every board on All tasks), newest first. A
@@ -225,6 +256,7 @@ public final class BoardViewModel {
         if needsVisible {
             needsVisible = false
             visibleEntries = query.apply(to: liveEntries)
+            visibleGroups = EntryGroup.groups(of: visibleEntries, sort: sort)
         }
     }
 
@@ -268,6 +300,11 @@ public final class BoardViewModel {
     public func entryCount(of board: Board?) -> Int {
         guard let board else { return liveEntries.count }
         return taskCounts[board.id] ?? 0
+    }
+
+    /// A task names its board only on All tasks, and only when there is more than one board.
+    public var showsBoardNames: Bool {
+        selectedBoard == nil && boards.count > 1
     }
 
     public func boardName(of entry: Entry) -> String {

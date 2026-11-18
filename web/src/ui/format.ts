@@ -10,6 +10,8 @@ const dayFormat = new Intl.DateTimeFormat(undefined, {
   year: 'numeric',
 })
 const monthFormat = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' })
+const longMonthFormat = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' })
+const dayMonthFormat = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' })
 
 /** Noon, so no time zone moves it to another day. */
 const noon = (year: number, month: number, day: number) => {
@@ -23,6 +25,32 @@ export const shortDay = (day: DayDate) => dayFormat.format(noon(day.year, day.mo
 
 /** "Jul 2017" in the reader's language. */
 export const shortMonth = (month: YearMonth) => monthFormat.format(noon(month.year, month.month, 1))
+
+/** "July 2017", for a month heading. */
+export const longMonth = (month: YearMonth) =>
+  longMonthFormat.format(noon(month.year, month.month, 1))
+
+/** "12 Mar", under a heading that names the month and year. */
+export const dayMonth = (day: DayDate) => dayMonthFormat.format(noon(day.year, day.month, day.day))
+
+/**
+ * A task's link as a card or the list shows it: the ticket key when the link ends in one
+ * ("PLA-6165", upper case), else the host and the last path part ("github.com · 12"), else
+ * the host. The same rule as `LinkLabel` on the Mac.
+ */
+export function linkLabel(link: string): string {
+  const trimmed = link.trim()
+  const withoutQuery = trimmed.split(/[?#]/, 1)[0] ?? ''
+  const schemeEnd = withoutQuery.indexOf('://')
+  const rest = schemeEnd >= 0 ? withoutQuery.slice(schemeEnd + 3) : withoutQuery
+  const parts = rest.split('/').filter((part) => part !== '')
+  const last = parts.at(-1)
+  if (last === undefined) return trimmed
+  if (/^[A-Z][A-Z0-9]*-[0-9]+$/.test(last)) return last
+  if (schemeEnd < 0) return trimmed
+  const host = (parts[0] ?? '').replace(/^www\./, '')
+  return parts.length > 1 ? `${host} · ${last}` : host
+}
 
 /** Color family of a badge or tile; the same names as `Tint` in the Mac design system. */
 export type Tint = 'neutral' | 'blue' | 'violet' | 'teal' | 'amber' | 'red'

@@ -385,20 +385,24 @@ public struct BoardView: View {
 
     private var grid: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 14)], spacing: 14) {
-                ForEach(model.visibleEntries) { entry in
-                    EntryCard(
-                        entry: entry,
-                        boardName: model.selectedBoard == nil ? model.boardName(of: entry) : nil,
-                        isSelected: model.selectedEntryId == entry.id,
-                        filterYear: model.year
-                    )
-                    // Select on the first click; a double-click alongside it opens the editor.
-                    // Stacking onTapGesture(count: 2) above onTapGesture would hold every
-                    // single click until the double-click interval passed.
-                    .onTapGesture { model.selectedEntryId = entry.id }
-                    .simultaneousGesture(TapGesture(count: 2).onEnded { model.edit(entry) })
-                    .contextMenu { entryMenu(entry) }
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 260), spacing: 14)],
+                spacing: 14,
+                pinnedViews: [.sectionHeaders]
+            ) {
+                ForEach(model.visibleGroups) { group in
+                    Section {
+                        ForEach(group.entries) { entry in
+                            card(entry, underMonthHeading: group.month != nil)
+                        }
+                    } header: {
+                        if let month = group.month {
+                            MonthHeading(month: month, count: group.entries.count)
+                                .padding(.top, 6)
+                                .padding(.bottom, 2)
+                                .background(Palette.ground)
+                        }
+                    }
                 }
             }
             .padding(.horizontal, 24)
@@ -407,9 +411,25 @@ public struct BoardView: View {
         }
     }
 
+    private func card(_ entry: Entry, underMonthHeading: Bool) -> some View {
+        EntryCard(
+            entry: entry,
+            boardName: model.showsBoardNames ? model.boardName(of: entry) : nil,
+            isSelected: model.selectedEntryId == entry.id,
+            filterYear: model.year,
+            underMonthHeading: underMonthHeading
+        )
+        // Select on the first click; a double-click alongside it opens the editor.
+        // Stacking onTapGesture(count: 2) above onTapGesture would hold every
+        // single click until the double-click interval passed.
+        .onTapGesture { model.selectedEntryId = entry.id }
+        .simultaneousGesture(TapGesture(count: 2).onEnded { model.edit(entry) })
+        .contextMenu { entryMenu(entry) }
+    }
+
     private var table: some View {
         Table(
-            model.visibleEntries,
+            of: Entry.self,
             selection: $model.selectedEntryId,
             sortOrder: sortOrder,
             columnCustomization: $tableColumns
@@ -426,21 +446,41 @@ public struct BoardView: View {
             .width(min: 200, ideal: 360)
             .customizationID("name")
             .disabledCustomizationBehavior(.visibility)
-            TableColumn("Board") { entry in
-                Text(model.boardName(of: entry)).foregroundStyle(Palette.secondaryInk)
+            if model.showsBoardNames {
+                TableColumn("Board") { entry in
+                    Text(model.boardName(of: entry)).foregroundStyle(Palette.secondaryInk)
+                }
+                .width(min: 60, ideal: 80, max: 160)
+                .customizationID("board")
             }
-            .width(min: 60, ideal: 80, max: 160)
-            .customizationID("board")
             TableColumn("Link") { entry in
-                Text(entry.link ?? "").foregroundStyle(Palette.accentInk).lineLimit(1).truncationMode(.middle)
+                if let link = entry.link, !link.isEmpty {
+                    Text(LinkLabel.text(link))
+                        .foregroundStyle(Palette.accentInk)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .help(link)
+                }
             }
-            .width(min: 80, ideal: 150, max: 320)
+            .width(min: 70, ideal: 100, max: 240)
             .customizationID("link")
             TableColumn("Date", value: \Entry.date) { entry in
                 Text(entry.date.short).monospacedDigit()
             }
             .width(min: 90, ideal: 100)
             .customizationID("date")
+        } rows: {
+            ForEach(model.visibleGroups) { group in
+                if let month = group.month {
+                    Section {
+                        ForEach(group.entries) { TableRow($0) }
+                    } header: {
+                        MonthHeading(month: month, count: group.entries.count)
+                    }
+                } else {
+                    ForEach(group.entries) { TableRow($0) }
+                }
+            }
         }
         .onChange(of: tableColumns) { _, columns in
             UserDefaults.standard.set(try? JSONEncoder().encode(columns), forKey: Self.tableColumnsKey)

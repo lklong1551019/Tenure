@@ -3,19 +3,25 @@ import Domain
 import SwiftUI
 
 /// One task in the grid: kind, date, name, the start of its story, and the first metric.
+/// A task without a story has a dashed border and says so in its last line.
 struct EntryCard: View {
     let entry: Entry
+    /// Nil when the board is obvious: one board selected, or only one board at all.
     let boardName: String?
     let isSelected: Bool
     /// The year the board is filtered to, if any: a task that began earlier says so.
     var filterYear: Int?
+    /// Under a month heading the date drops its year ("12 Mar").
+    var underMonthHeading = false
+
+    private var hasStory: Bool { entry.excerpt != nil }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Badge(entry.type.title, tint: entry.type.tint)
                 Spacer()
-                Text(entry.date.short)
+                Text(underMonthHeading ? entry.date.dayMonth : entry.date.short)
                     .appFont(12)
                     .foregroundStyle(Palette.mutedInk)
             }
@@ -30,11 +36,6 @@ struct EntryCard: View {
                     .foregroundStyle(Palette.secondaryInk)
                     .lineLimit(2)
                     .lineSpacing(2)
-            } else {
-                Text("No write-up yet.")
-                    .appFont(13)
-                    .italic()
-                    .foregroundStyle(Palette.mutedInk)
             }
             Spacer(minLength: 0)
             if let filterYear, entry.date.year < filterYear {
@@ -63,44 +64,59 @@ struct EntryCard: View {
                 .padding(.vertical, 7)
                 .background(Palette.sunken, in: RoundedRectangle(cornerRadius: Metrics.controlRadius))
             }
-            if let link = entry.link, !link.isEmpty {
-                // Cut in the middle, as in the list, so a ticket key at the end stays readable.
-                Label {
-                    Text(link).truncationMode(.middle)
-                } icon: {
-                    Image(systemName: "link")
-                }
-                .appFont(12)
-                .foregroundStyle(Palette.accentInk)
-                .lineLimit(1)
-                .help(link)
-            }
-            if boardName != nil || !entry.tags.isEmpty {
-                HStack(spacing: 8) {
-                    if let boardName {
-                        Label(boardName, systemImage: "building.2")
-                    }
-                    ForEach(entry.tags.prefix(3), id: \.self) { tag in
-                        Text("#\(tag)")
-                    }
-                }
-                .appFont(12)
-                .foregroundStyle(Palette.mutedInk)
-                .lineLimit(1)
-            }
+            footer
         }
         .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .background(Palette.surface, in: RoundedRectangle(cornerRadius: Metrics.cornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: Metrics.cornerRadius)
-                .strokeBorder(isSelected ? Palette.accent : Palette.border, lineWidth: isSelected ? 2 : 1)
-        )
+        .overlay(border)
         .cardShadow()
         .contentShape(RoundedRectangle(cornerRadius: Metrics.cornerRadius))
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    /// The link as a ticket key in the accent color, the tags, the board, and "No story".
+    @ViewBuilder
+    private var footer: some View {
+        let link = entry.link.flatMap { $0.isEmpty ? nil : $0 }
+        if link != nil || boardName != nil || !entry.tags.isEmpty || !hasStory {
+            HStack(spacing: 8) {
+                if let link {
+                    Label(LinkLabel.text(link), systemImage: "link")
+                        .foregroundStyle(Palette.accentInk)
+                        .help(link)
+                        .layoutPriority(1)
+                }
+                if let boardName {
+                    Label(boardName, systemImage: "building.2")
+                }
+                ForEach(entry.tags.prefix(3), id: \.self) { tag in
+                    Text("#\(tag)")
+                }
+                Spacer(minLength: 0)
+                if !hasStory {
+                    Text("No story").fixedSize()
+                }
+            }
+            .appFont(12)
+            .foregroundStyle(Palette.mutedInk)
+            .lineLimit(1)
+        }
+    }
+
+    private var border: some View {
+        let shape = RoundedRectangle(cornerRadius: Metrics.cornerRadius)
+        return Group {
+            if isSelected {
+                shape.strokeBorder(Palette.accent, lineWidth: 2)
+            } else if hasStory {
+                shape.strokeBorder(Palette.border, lineWidth: 1)
+            } else {
+                shape.strokeBorder(Palette.borderStrong, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+            }
+        }
     }
 }
 
@@ -273,5 +289,26 @@ private struct MetaChip: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(tint?.background ?? Palette.sunken, in: RoundedRectangle(cornerRadius: 6))
+    }
+}
+
+/// "October 2026  6 tasks": the heading over one month's tasks in the grid and the table.
+struct MonthHeading: View {
+    let month: YearMonth
+    let count: Int
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(month.long)
+                .appFont(13, weight: .semibold)
+                .foregroundStyle(Palette.ink)
+            Text(count == 1 ? "1 task" : "\(count) tasks")
+                .appFont(12)
+                .foregroundStyle(Palette.mutedInk)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
     }
 }

@@ -6,9 +6,13 @@ Layer: presentation. SPM target: `BoardFeature`.
 
 The main window: board sidebar, tasks as a grid or a table beside the selected task's story
 (40/60, draggable, double-click the divider to reset), the board sheet, and Markdown export.
-A card shows its link on a line of its own in the accent color, cut in the middle, with the
-board and tags below. The table's column widths, order, and hidden columns are kept in
-UserDefaults (`tableColumns`); Name is the widest column by default and cannot be hidden.
+Sorted by date, the grid and the table group tasks under month headings (`EntryGroup`, pinned
+in the grid); a card then shows its date without the year. A card's last line holds the link
+as a ticket key in the accent color (`LinkLabel`: "PLA-6165", else "host · last part"), the
+tags, and "No story" for a task without one, which also gets a dashed border. Board names show
+only on All tasks with more than one board. The table's column widths, order, and hidden
+columns are kept in UserDefaults (`tableColumns`); Name is the widest column by default and
+cannot be hidden.
 
 ## Owns
 
@@ -37,7 +41,8 @@ Domain, DesignSystem
 
 ## Tests
 
-`BoardFeatureTests` (13 tests): board order and filtering, reveal across boards and filters,
+`BoardFeatureTests` (16 tests): board order and filtering, reveal across boards and filters,
 selection fallback, board draft validation and save, failed save, new task target, board and
 year export, copying a task, the summary line, HTML tags read as Markdown, the year filter (per-board counts, summary, reset), story links limited to http and
-https, and importing ready rows onto the chosen board.
+https, importing ready rows onto the chosen board, month groups, when board names show, and
+link labels.
